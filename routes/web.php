@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboardController;
+use App\Http\Controllers\Seller\DashboardController as SellerDashboardController;
+
 
 // Auth views
 Route::view('/login', 'auth.login')->name('login.view');
@@ -17,4 +19,6 @@ Route::view('/resend-otp', 'auth.resend-otp')->name('resend.view');
 
 // Admin dashboard (protected)
     Route::get('/admin', [DashboardController::class, 'index'])->name('admin.dashboard');
-        
+
+
+    Route::get('/seller', [SellerDashboardController::class, 'index'])->name('seller.dashboard');   // middleware to be added when auth is finalized
