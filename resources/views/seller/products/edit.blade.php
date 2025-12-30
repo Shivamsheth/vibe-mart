@@ -212,15 +212,16 @@ form.addEventListener('submit', async function (e) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updating...';
 
     const formData = new FormData(form);
+    formData.append('_method', 'POST'); // 🔥 Laravel method spoofing
 
     try {
-        const res = await fetch(`/api/seller/products/{{ $product->id }}`, {
-            method: 'PUT',
+        const res = await fetch(`/seller/products/{{ $product->id }}`, { // 🔥 FIXED: /seller/ not /api/seller/
+            method: 'POST', // 🔥 FIXED: POST not PUT
+            body: formData, // 🔥 FormData - NO Content-Type header
             headers: {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: formData
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            }
         });
 
         const json = await res.json();
@@ -248,14 +249,14 @@ form.addEventListener('submit', async function (e) {
     }
 });
 
-// Remove image
+// Remove image - 🔥 FIXED URL
 document.querySelectorAll('.remove-image').forEach(btn => {
     btn.addEventListener('click', async function() {
         const imageId = this.dataset.imageId;
         if (!confirm('Remove this image?')) return;
 
         try {
-            const res = await fetch(`/api/seller/products/images/${imageId}`, {
+            const res = await fetch(`/seller/products/images/${imageId}`, { // 🔥 FIXED: /seller/
                 method: 'DELETE',
                 headers: {
                     'Accept': 'application/json',
@@ -274,3 +275,4 @@ document.querySelectorAll('.remove-image').forEach(btn => {
 });
 </script>
 @endpush
+
