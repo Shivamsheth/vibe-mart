@@ -58,4 +58,11 @@ Route::post('/products/{product}', [ProductController::class, 'update'])->name('
         Route::post('/products/{product}/toggle', [ProductController::class, 'toggleStatus'])->name('products.toggle');
         Route::delete('/products/images/{image}', [ProductController::class, 'deleteImage'])->name('products.image.delete');
     });
+
+    Route::prefix('customer')->group(function (){
+        Route::get('/profile',[CustomerDashboardController::class,'profile'])->name('customer.profile');
+        Route::get('/orders',[CustomerDashboardController::class,'orders'])->name('customer.orders');
+        Route::get('/cart',[CustomerDashboardController::class,'cart'])->name('customer.cart');
+        Route::get('/support-system',[CustomerDashboardController::class,'support'])->name('customer.support');
+    }); 
 });

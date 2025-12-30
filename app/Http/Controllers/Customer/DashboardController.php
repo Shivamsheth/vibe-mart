@@ -8,6 +8,18 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        return view('customer.dashboard');
+        return view('home');
+    }
+    public function profile(){
+        return view('customer.profile');
+    }
+    public function orders(){
+        return view('customer.orders');
+    }
+    public function cart(){
+        return view('customer.cart');
+    }
+    public function support(){
+        return view('customer.support');
     }
 }

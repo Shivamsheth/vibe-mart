@@ -191,7 +191,7 @@ public function login(Request $request)
             'data' => [
                 'user'        => $user,
                 'token'       => $token,
-                'redirect_to' => route('home'),
+                'redirect_to' => route('seller.dashboard'),
             ],
         ]);
 
