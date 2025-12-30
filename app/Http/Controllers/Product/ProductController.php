@@ -23,15 +23,16 @@ class ProductController extends Controller
     | WEB PAGES
     ======================== */
 
-    public function index()
-    {
-        $products = Product::where('seller_id', Auth::id())
-            ->with(['images', 'category'])
-            ->latest()
-            ->paginate(15);
+   public function index()
+{
+    $products = Product::where('seller_id', Auth::id())
+        ->with(['images', 'category'])
+        ->orderBy('created_at', 'desc')
+        ->paginate(15);
 
-        return view('seller.products.index', compact('products'));
-    }
+    return view('seller.products.index', compact('products'));
+}
+
 
     public function create()
     {
@@ -282,15 +283,28 @@ class ProductController extends Controller
     }
 
     public function toggleStatus(Request $request, Product $product)
-    {
-        if ($product->seller_id !== Auth::id()) {
-            return $this->error('Unauthorized', 403);
-        }
-
-        $product->update(['is_active' => !$product->is_active]);
-
-        return $this->success($product->fresh(), 'Status updated successfully.');
+{
+    if (!$product || $product->seller_id !== Auth::id()) {
+        return $this->error('Unauthorized', 403);
     }
+
+    // 🔥 3-STATE LOGIC: pending → active → inactive → active
+    $currentStatus = $product->status;
+    $nextStatus = match($currentStatus) {
+        'pending' => 'active',
+        'active' => 'inactive',
+        'inactive' => 'active',
+        default => 'pending'
+    };
+
+    $product->update(['status' => $nextStatus]);
+
+    return $this->success(
+        $product->fresh(['images', 'category']),
+        "Status changed to " . ucfirst($nextStatus)
+    );
+}
+
 
     public function deleteImage(Request $request, ProductImage $image)
     {
