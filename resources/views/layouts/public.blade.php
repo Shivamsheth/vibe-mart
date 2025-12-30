@@ -174,42 +174,38 @@
                                 <i class="fas fa-user-plus me-1"></i>Join
                             </a>
                         </li>
-                    @else
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center px-2 py-1" href="#" data-bs-toggle="dropdown">
-                                <img src="{{ auth()->user()->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode(auth()->user()->name).'&size=28&background=6366f1&color=fff' }}" 
-                                     class="rounded-circle me-1" style="width:28px;height:28px;">
-                                <span class="d-none d-md-inline text-xs">{{ Str::limit(auth()->user()->name, 12) }}</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-1" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; min-width: 220px;">
-                                <li><span class="dropdown-item-text px-3 py-2 small text-muted-soft">{{ auth()->user()->email }}</span></li>
-                                <li><hr class="dropdown-divider mx-2 my-1"></li>
-                                @if(auth()->user()->type === 'admin')
-                                <li>
-                                    <a class="dropdown-item-text px-3 py-2 small text-muted-soft" href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Dashboard</a></li>
-                                @endif
-                                @if(auth()->user()->type === 'customer')
-                                <li>
-                                    <a class="dropdown-item-text px-3 py-2 small text-muted-soft" href="{{ route('customer.dashboard') }}"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Dashboard</a></li>
-                                @endif
-                                @if(auth()->user()->type === 'seller')
-                                <li><a class="dropdown-item-text px-3 py-2 small text-muted-soft" href="{{ route('seller.dashboard') }}"><i class="fas fa-store me-2 text-warning"></i>Seller</a></li>
-                                @endif
-                                <li><hr class="dropdown-divider mx-2 my-1"></li>
-                                <li>
-                                    <form method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <button class="dropdown-item w-100 text-start px-3 py-1 border-0 bg-transparent" type="submit">
-                                            <div class="dropdown-item-text px-3 py-2 small text-muted-soft">
-                                                                                            <i class="fas fa-sign-out-alt me-2 text-danger"></i>
-                                                Logout
-                                            </div>
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    @endguest
+                    {{-- In layouts/public.blade.php - Update dropdown --}}
+@else
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle d-flex align-items-center px-2 py-1" href="#" data-bs-toggle="dropdown">
+            <img src="{{ auth()->user()->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode(auth()->user()->name).'&size=28&background=6366f1&color=fff' }}" 
+                 class="rounded-circle me-1" style="width:28px;height:28px;">
+            <span class="d-none d-md-inline text-xs">{{ Str::limit(auth()->user()->name, 12) }}</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-1" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; min-width: 200px;">
+            <li><span class="dropdown-item-text px-3 py-2 small text-muted-soft">{{ auth()->user()->email }}</span></li>
+            <li><hr class="dropdown-divider mx-2 my-1"></li>
+            <li><a class="dropdown-item px-3 py-1" href="{{ route('customer.profile') }}"><i class="fas fa-user me-2 text-primary"></i>Profile</a></li>
+            <li><a class="dropdown-item px-3 py-1" href="{{ route('customer.orders') }}"><i class="fas fa-shopping-bag me-2 text-success"></i>My Orders</a></li>
+            <li><a class="dropdown-item px-3 py-1" href="{{ route('customer.cart') }}"><i class="fas fa-shopping-cart me-2 text-warning"></i>Cart</a></li>
+            <li><a class="dropdown-item px-3 py-1" href="{{ route('customer.support') }}"><i class="fas fa-headset me-2 text-info"></i>Support</a></li>
+            @if(auth()->user()->type === 'seller')
+            <li><hr class="dropdown-divider mx-2 my-1"></li>
+            <li><a class="dropdown-item px-3 py-1" href="{{ route('seller.dashboard') }}"><i class="fas fa-store me-2 text-warning"></i>Seller Dashboard</a></li>
+            @endif
+            <li><hr class="dropdown-divider mx-2 my-1"></li>
+            <li>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button class="dropdown-item w-100 text-start px-3 py-1 border-0 bg-transparent" type="submit">
+                        <i class="fas fa-sign-out-alt me-2 text-danger"></i>Logout
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </li>
+@endguest
+
                 </ul>
             </div>
         </div>
