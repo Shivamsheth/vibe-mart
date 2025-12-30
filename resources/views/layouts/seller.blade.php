@@ -1,3 +1,4 @@
+{{-- resources/views/layouts/seller.blade.php --}}
 <!doctype html>
 <html lang="en">
 <head>
@@ -6,10 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
     <style>
         :root{
@@ -112,12 +113,33 @@
         }
         .vm-page-title{font-size:1.2rem;font-weight:600;}
         .vm-breadcrumb{font-size:.78rem;color:var(--vm-muted);}
+        
+        /* 🔥 Card styling for consistency */
         .card-soft{
             background:var(--vm-surface-soft);
             border-radius:14px;
             border:1px solid var(--vm-border);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .card-soft:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15);
+            border-color: var(--vm-primary);
         }
         .text-muted-soft{color:var(--vm-muted);}
+
+        /* 🔥 Product card specific */
+        .product-image {
+            transition: transform 0.3s ease-in-out !important;
+            object-fit: cover !important;
+        }
+        .product-card-wrapper:hover .product-image {
+            transform: scale(1.1) !important;
+        }
+        .product-card-wrapper:hover .card-soft {
+            transform: translateY(-6px) !important;
+        }
 
         @media (max-width: 991.98px){
             .vm-sidebar{display:none;}
@@ -141,15 +163,15 @@
             <li>
                 <a href="{{ route('seller.dashboard') }}"
                    class="vm-nav-link {{ request()->routeIs('seller.dashboard') ? 'active' : '' }}">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
+                   <i class="fas fa-tachometer-alt"></i>
+                   <span>Dashboard</span>
                 </a>
             </li>
             <li>
                 <a href="{{ route('seller.products.index') }}"
                    class="vm-nav-link {{ request()->routeIs('seller.products.*') ? 'active' : '' }}">
-                    <i class="fas fa-box"></i>
-                    <span>Products</span>
+                   <i class="fas fa-box"></i>
+                   <span>Products</span>
                 </a>
             </li>
             <li>
@@ -169,6 +191,15 @@
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </a>
+            </li>
+            <li >
+                <form method="POST" action="{{ route('logout') }}" style="display: contents;">
+                    @csrf
+                    <button type="submit" class="vm-nav-link  text-start border-0 bg-transparent p-0">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
             </li>
         </ul>
 
@@ -209,7 +240,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 @stack('scripts')
 </body>
 </html>
