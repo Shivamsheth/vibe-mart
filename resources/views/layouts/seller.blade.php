@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <title>@yield('title','VibeMart Seller')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    **<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">**
 
     <style>
         :root{
@@ -55,6 +58,7 @@
             color:var(--vm-muted);
             text-decoration:none;
             font-size:.88rem;
+            transition: all 0.2s ease;
         }
         .vm-nav-link i{font-size:1rem;}
         .vm-nav-link.active,
@@ -137,31 +141,32 @@
             <li>
                 <a href="{{ route('seller.dashboard') }}"
                    class="vm-nav-link {{ request()->routeIs('seller.dashboard') ? 'active' : '' }}">
-                    <i class="bi bi-speedometer2"></i>
+                    <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li>
-                <a href="#" class="vm-nav-link">
-                    <i class="bi bi-box-seam"></i>
-                    <span>My Products</span>
+                <a href="{{ route('seller.products.index') }}"
+                   class="vm-nav-link {{ request()->routeIs('seller.products.*') ? 'active' : '' }}">
+                    <i class="fas fa-box"></i>
+                    <span>Products</span>
                 </a>
             </li>
             <li>
                 <a href="#" class="vm-nav-link">
-                    <i class="bi bi-receipt"></i>
+                    <i class="fas fa-shopping-bag"></i>
                     <span>Orders</span>
                 </a>
             </li>
             <li>
                 <a href="#" class="vm-nav-link">
-                    <i class="bi bi-graph-up"></i>
+                    <i class="fas fa-chart-line"></i>
                     <span>Analytics</span>
                 </a>
             </li>
             <li>
                 <a href="#" class="vm-nav-link">
-                    <i class="bi bi-gear"></i>
+                    <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </a>
             </li>
@@ -177,8 +182,7 @@
     <div class="vm-main">
         <header class="vm-topbar">
             <div class="vm-topbar-title">
-                Seller / Dashboard ·
-                <span>@yield('page_title','Dashboard')</span>
+                Seller / <span>@yield('page_title','Dashboard')</span>
             </div>
             <div class="vm-user">
                 <div class="vm-avatar">
@@ -193,7 +197,7 @@
                 <div>
                     <div class="vm-page-title">@yield('page_title','Dashboard')</div>
                     <div class="vm-breadcrumb">
-                        Seller / <span class="text-muted-soft">Dashboard</span>
+                        Seller / <span class="text-muted-soft">@yield('breadcrumb', 'Dashboard')</span>
                     </div>
                 </div>
             </div>
@@ -204,6 +208,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+**<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>**
+**<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">**
 @stack('scripts')
 </body>
 </html>

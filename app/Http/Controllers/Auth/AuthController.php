@@ -3,221 +3,195 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;                // ✅ FIX: correct namespace
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash; // ✅ FIX: import Hash
-use App\Traits\Responses;
 use App\Jobs\SendVerificationMail;
+use App\Models\User;
+use App\Traits\Responses;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
     use Responses;
 
     public function register(Request $request)
-{
-    try {
-        $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string|min:10|max:15|unique:users,phone',
-            'password' => 'required|string|min:8',
-            'confirm_password' => 'required|same:password',
+    {
+        try {
+            $request->validate([
+                'name'             => 'required|string|max:100',
+                'email'            => 'required|email|unique:users,email',
+                'phone'            => 'required|string|min:10|max:15|unique:users,phone',
+                'password'         => 'required|string|min:8',
+                'confirm_password' => 'required|same:password',
 
-            'type' => 'required|in:admin,customer,seller',
-            'address' => 'required|string|max:255',
-            'city' => 'required|string|max:100',
-            'state' => 'required|string|max:100',
-            'pincode' => 'required|string|min:4|max:10',
-            'country' => 'required|string|max:100',
-        ]);
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return $this->validationErrors($e->errors());
-    }
-
-    try {
-        // --- NEW LOGIC: block extra active admins ---
-        if ($request->type === 'admin') {
-            $activeAdminExists = User::where('type', 'admin')
-                ->where('is_active', true)
-                ->exists();
-
-            if ($activeAdminExists) {
-                return $this->error(
-                    'An active admin already exists. New admin registrations are not allowed.',
-                    403
-                );
-            }
+                'type'    => 'required|in:admin,customer,seller',
+                'address' => 'required|string|max:255',
+                'city'    => 'required|string|max:100',
+                'state'   => 'required|string|max:100',
+                'pincode' => 'required|string|min:4|max:10',
+                'country' => 'required|string|max:100',
+            ]);
+        } catch (ValidationException $e) {
+            return $this->validationErrors($e->errors());
         }
-        // --------------------------------------------
 
-        $otp = rand(100000, 999999);
-        $otpExpiresAt = now()->addMinutes(5);
+        try {
+            if ($request->type === 'admin') {
+                $activeAdminExists = User::where('type', 'admin')
+                    ->where('is_active', true)
+                    ->exists();
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-            'type' => $request->type ?? 'customer',
-            'address' => $request->address,
-            'city' => $request->city,
-            'state' => $request->state,
-            'pincode' => $request->pincode,
-            'country' => $request->country,
-            'otp' => $otp,
-            'otp_expires_at' => $otpExpiresAt,
-            'email_verified_at' => false,
-        ]);
+                if ($activeAdminExists) {
+                    return $this->error(
+                        'An active admin already exists. New admin registrations are not allowed.',
+                        403
+                    );
+                }
+            }
 
-        SendVerificationMail::dispatch($user, $otp)->onQueue('emails');
+            $otp          = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+            $otpExpiresAt = now()->addMinutes(5);
 
-        return $this->created([
-            'user_id' => $user->id,
-            'email'   => $user->email,
-        ], 'Registration successful! Please check your email for OTP.');
-    } catch (\Exception $e) {
-        return $this->error('Registration failed: '.$e->getMessage(), 500);
+            $user = User::create([
+                'name'     => $request->name,
+                'email'    => $request->email,
+                'phone'    => $request->phone,
+                'password' => Hash::make($request->password),
+                'type'     => $request->type ?? 'customer',
+                'address'  => $request->address,
+                'city'     => $request->city,
+                'state'    => $request->state,
+                'pincode'  => $request->pincode,
+                'country'  => $request->country,
+                'otp'             => $otp,
+                'otp_expires_at'  => $otpExpiresAt,
+                'email_verified_at' => null,
+            ]);
+
+            SendVerificationMail::dispatch($user, $otp)->onQueue('emails');
+
+            return $this->created([
+                'user_id' => $user->id,
+                'email'   => $user->email,
+            ], 'Registration successful! Please check your email for OTP.');
+        } catch (\Exception $e) {
+            return $this->error('Registration failed: '.$e->getMessage(), 500);
+        }
     }
-}
-
 
     public function verifyOtp(Request $request)
     {
-    try {
-        $request->validate([
-            'email' => 'required|email',         
-            'otp'   => 'required|digits:6',      
-        ]);
+        try {
+            $request->validate([
+                'email' => 'required|email',
+                'otp'   => 'required|digits:6',
+            ]);
 
-        $user = User::where('email', $request->email)
-            ->where('email_verified_at', false)
-            ->first();
+            $user = User::where('email', $request->email)
+                ->whereNull('email_verified_at')
+                ->first();
 
-        if (!$user) {
-            return $this->error('User not found or already verified', 404);
-        }
+            if (! $user) {
+                return $this->error('User not found or already verified', 404);
+            }
 
-        if ($user->otp !== $request->otp) {
-            return $this->error('Invalid OTP', 400);
-        }
+            if ($user->otp !== $request->otp) {
+                return $this->error('Invalid OTP', 400);
+            }
 
-        if ($user->otp_expires_at === null || $user->otp_expires_at->isPast()) {
-            return $this->error('OTP has expired, please request a new one.', 400);
-        }
+            if ($user->otp_expires_at === null || $user->otp_expires_at->isPast()) {
+                return $this->error('OTP has expired, please request a new one.', 400);
+            }
 
-        $user->update([
-            'email_verified_at' => true,
-            'otp'              => null,
-            'otp_expires_at'   => null,
-            'otp_attempts'     => 0,
-        ]);
+            $user->update([
+                'email_verified_at' => now(),
+                'otp'               => null,
+                'otp_expires_at'    => null,
+                'otp_attempts'      => 0,
+            ]);
 
-        return $this->successMessage('Email verified successfully.');
-
-     } catch (\Illuminate\Validation\ValidationException $e) {
-        return $this->validationErrors($e->errors());
+            return $this->successMessage('Email verified successfully.');
+        } catch (ValidationException $e) {
+            return $this->validationErrors($e->errors());
         } catch (\Exception $e) {
             return $this->error('Invalid OTP: '.$e->getMessage(), 500);
+        }
     }
 
-}
+    public function resendOtp(Request $request)
+    {
+        try {
+            $request->validate([
+                'email' => 'required|email',
+            ]);
 
-public function resendOtp(Request $request)
+            $user = User::where('email', $request->email)
+                ->whereNull('email_verified_at')
+                ->first();
+
+            if (! $user) {
+                return $this->error('User not found or already verified.', 404);
+            }
+
+            if ($user->otp_expires_at && $user->otp_expires_at->isFuture()) {
+                return $this->error('Previous OTP is still valid. Please wait before requesting a new one.', 400);
+            }
+
+            $otp          = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+            $otpExpiresAt = now()->addMinutes(5);
+
+            $user->update([
+                'otp'            => $otp,
+                'otp_expires_at' => $otpExpiresAt,
+            ]);
+
+            SendVerificationMail::dispatch($user, $otp)->onQueue('emails');
+
+            return $this->successMessage('A new OTP has been sent to your email.');
+        } catch (ValidationException $e) {
+            return $this->validationErrors($e->errors());
+        } catch (\Exception $e) {
+            return $this->error('Failed to resend OTP: '.$e->getMessage(), 500);
+        }
+    }
+
+public function login(Request $request)
 {
-    try {
-        $request->validate([
-            'email' => 'required|email',
+    $credentials = $request->validate([
+        'email'    => ['required', 'email'],
+        'password' => ['required'],
+    ]);
+
+    if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
+        $request->session()->regenerate();
+
+        $user  = Auth::guard('web')->user();
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Login successful.',
+            'data' => [
+                'user'        => $user,
+                'token'       => $token,
+                'redirect_to' => route('seller.dashboard'),
+            ],
         ]);
-
-        $user = User::where('email', $request->email)
-            ->where('email_verified_at', false)
-            ->first();
-
-        if (! $user) {
-            return $this->error('User not found or already verified.', 404);
-        }
-
-        if ($user->otp_expires_at && $user->otp_expires_at->isFuture()) {
-            return $this->error('Previous OTP is still valid. Please wait before requesting a new one.', 400);
-        }
-
-        $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
-        $otpExpiresAt = now()->addMinutes(5);
-
-        $user->update([
-            'otp' => $otp,
-            'otp_expires_at' => $otpExpiresAt,
-        ]);
-
-        SendVerificationMail::dispatch($user, $otp); 
-
-        return $this->successMessage('A new OTP has been sent to your email.');
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return $this->validationErrors($e->errors());
-    } catch (\Exception $e) {
-        return $this->error('Failed to resend OTP: '.$e->getMessage(), 500);
-    }
-}
-
-        public function login(Request $request)
-{
-    try {
-        $request->validate([
-            'email'    => 'required|string',   // email or phone
-            'password' => 'required|string',
-        ]);
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return $this->validationErrors($e->errors());
     }
 
-    try {
-        $user = User::where('email', $request->email)
-            ->orWhere('phone', $request->email)
-            ->first();
-
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            return $this->unauthorized('Invalid credentials.');
-        }
-
-        if (! $user->email_verified_at) {
-            return $this->error('Please verify your email first.', 403);
-        }
-
-        if (! $user->is_active) {
-            return $this->error('Account is deactivated.', 403);
-        }
-
-        $user->update(['last_login_at' => now()]);
-
-        $token = $user->createToken('auth-token')->plainTextToken;
-
-        // Decide where frontend should redirect
-               switch ($user->type) {
-            case 'admin':
-                $redirectTo = route('admin.dashboard');   // /admin
-                break;
-
-            case 'seller':
-                $redirectTo = route('seller.dashboard');  // /seller
-                break;
-
-            case 'customer':
-            default:
-                $redirectTo = route('home');              // /
-                break;}
-         // customer/seller home (define later)
-
-        return $this->success([
-            'user'        => $user,
-            'token'       => $token,
-            'token_type'  => 'Bearer',
-            'redirect_to' => $redirectTo,   // <– important
-        ], 'Login successful.');
-    } catch (\Exception $e) {
-        return $this->error('Login failed: '.$e->getMessage(), 500);
-    }
+    return response()->json([
+        'success' => false,
+        'message' => 'Invalid credentials.',
+    ], 422);
 }
 
 
+
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return $this->successMessage('Logout successful.');
+    }
 }

@@ -44,9 +44,7 @@
             color: #9ca3af;
             font-size: .9rem;
         }
-        .input-with-icon input {
-            padding-left: 2.2rem;
-        }
+        .input-with-icon input { padding-left: 2.2rem; }
         .form-label {
             font-weight: 600;
             font-size: .85rem;
@@ -67,9 +65,7 @@
             font-weight: 600;
         }
         .btn-primary:hover { filter: brightness(1.05); }
-        .link-muted {
-            color: #6b7280;
-        }
+        .link-muted { color: #6b7280; }
         .link-muted:hover { color: #4f46e5; }
         @media (max-width: 991.98px) {
             .brand-panel { display: none; }
@@ -80,7 +76,6 @@
 <body>
 <div class="auth-wrapper px-3">
     <div class="row g-0 shadow-lg rounded-4 overflow-hidden">
-        <!-- Left brand panel -->
         <div class="col-lg-5 brand-panel d-flex flex-column justify-content-between">
             <div>
                 <div class="brand-logo mb-4">
@@ -104,7 +99,6 @@
             </div>
         </div>
 
-        <!-- Right login form panel -->
         <div class="col-lg-7 form-panel">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
@@ -118,22 +112,20 @@
                 </span>
             </div>
 
-            <!-- Alerts -->
             <div id="login-alert"></div>
 
             <form id="loginForm" novalidate>
-                <!-- Email or phone -->
                 <div class="mb-3">
                     <label class="form-label">Email or phone</label>
                     <div class="position-relative input-with-icon">
                         <span class="input-icon">
                             <i class="bi bi-person-circle"></i>
                         </span>
-                        <input name="email" class="form-control" placeholder="you@example.com or 9876543210" required>
+                        <input name="email" class="form-control"
+                               placeholder="you@example.com or 9876543210" required>
                     </div>
                 </div>
 
-                <!-- Password -->
                 <div class="mb-1">
                     <label class="form-label d-flex justify-content-between">
                         <span>Password</span>
@@ -143,7 +135,8 @@
                         <span class="input-icon">
                             <i class="bi bi-lock"></i>
                         </span>
-                        <input name="password" type="password" class="form-control" placeholder="Your password" required>
+                        <input name="password" type="password" class="form-control"
+                               placeholder="Your password" required>
                     </div>
                 </div>
 
@@ -164,7 +157,9 @@
 
                 <div class="text-center mt-3 small text-muted">
                     Don’t have an account?
-                    <a href="{{ route('register.view') }}" class="text-primary text-decoration-none">Register now</a>
+                    <a href="{{ route('register.view') }}" class="text-primary text-decoration-none">
+                        Register now
+                    </a>
                 </div>
             </form>
         </div>
@@ -173,6 +168,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+console.log('LOGIN SCRIPT LOADED');
+
 const form      = document.getElementById('loginForm');
 const alertBox  = document.getElementById('login-alert');
 const submitBtn = document.getElementById('submitBtn');
@@ -188,9 +185,10 @@ function showAlert(type, message) {
 }
 
 form.addEventListener('submit', async function (e) {
-    e.preventDefault();              // prevent default GET/POST form submit
-    alertBox.innerHTML = '';
+    e.preventDefault();
+    console.log('LOGIN SUBMIT FIRED');
 
+    alertBox.innerHTML = '';
     const data = Object.fromEntries(new FormData(form));
 
     submitBtn.disabled = true;
@@ -206,14 +204,22 @@ form.addEventListener('submit', async function (e) {
             },
             body: JSON.stringify(data)
         });
-        const json = await res.json();
 
-        if (json.success) {
+        const json = await res.json();
+        console.log('LOGIN JSON:', json);
+
+        if (res.ok && json.success) {
             showAlert('success', json.message || 'Login successful. Redirecting...');
 
+            let target = '/';
+            if (json.data && json.data.redirect_to) {
+                target = json.data.redirect_to;
+            }
+            if (json.redirect_to) {
+                target = json.redirect_to;
+            }
+
             setTimeout(() => {
-                // use redirect URL from API (admin vs normal user)
-                const target = json.data?.redirect_to || '/';
                 window.location.href = target;
             }, 800);
         } else {
