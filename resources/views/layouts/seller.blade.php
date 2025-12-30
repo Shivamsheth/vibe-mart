@@ -9,7 +9,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    **<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">**
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root{
@@ -188,7 +188,7 @@
                 <div class="vm-avatar">
                     {{ strtoupper(substr(auth()->user()->name ?? 'S',0,1)) }}
                 </div>
-                <span>{{ auth()->user()->email ?? 'seller@example.com' }}</span>
+                <span>{{ auth()->user()->name ?? 'seller' }}</span>
             </div>
         </header>
 
@@ -208,8 +208,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-**<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>**
-**<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">**
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 @stack('scripts')
 </body>
 </html>
