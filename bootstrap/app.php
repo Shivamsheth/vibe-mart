@@ -12,6 +12,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'seller'=>\App\Http\Middleware\EnsureSeller::class,
+        ]);
+        // Add this:
+        // $middleware->web(append: [
+        //     ValidateCsrfToken::class.':except=api/auth/login',
+        // ]);
+
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {

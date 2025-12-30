@@ -134,18 +134,22 @@
         </div>
 
         <div class="card-soft p-3">
-            <h6 class="mb-2">Quick Actions</h6>
-            <a href="#" class="d-block small text-decoration-none mb-2">
-                <i class="bi bi-plus-circle me-2"></i>Add new product
+            <h6 class="mb-3">Quick Actions</h6>
+            <a href="{{ route('seller.products.index') }}" class="d-block text-decoration-none mb-2">
+                <i class="fas fa-box me-2 text-primary"></i>
+                <span class="small">Manage Products</span>
             </a>
-            <a href="#" class="d-block small text-decoration-none mb-2">
-                <i class="bi bi-arrow-repeat me-2"></i>Update stock
+            <a href="{{ route('seller.products.create') }}" class="d-block text-decoration-none mb-2">
+                <i class="fas fa-plus-circle me-2 text-success"></i>
+                <span class="small">Add New Product</span>
             </a>
-            <a href="#" class="d-block small text-decoration-none mb-2">
-                <i class="bi bi-megaphone me-2"></i>Create offer / coupon
+            <a href="#" class="d-block text-decoration-none mb-2">
+                <i class="fas fa-arrow-repeat me-2 text-info"></i>
+                <span class="small">Update Stock</span>
             </a>
-            <a href="#" class="d-block small text-decoration-none">
-                <i class="bi bi-headset me-2"></i>Contact seller support
+            <a href="#" class="d-block text-decoration-none">
+                <i class="fas fa-headset me-2 text-warning"></i>
+                <span class="small">Seller Support</span>
             </a>
         </div>
     </div>
