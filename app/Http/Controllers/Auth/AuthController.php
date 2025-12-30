@@ -169,15 +169,45 @@ public function login(Request $request)
         $user  = Auth::guard('web')->user();
         $token = $user->createToken('api-token')->plainTextToken;
 
+        if($user->type == 'admin'){
+            return response()->json([
+            'success' => true,
+            'message' => 'Login successful.',
+            'data' => [
+                'user'        => $user,
+                'token'       => $token,
+                'redirect_to' => route('admin.dashboard'),
+            ],
+        ]);
+
+        }
+
+
+
+        if($user->type == 'seller'){
         return response()->json([
             'success' => true,
             'message' => 'Login successful.',
             'data' => [
                 'user'        => $user,
                 'token'       => $token,
-                'redirect_to' => route('seller.dashboard'),
+                'redirect_to' => route('home'),
             ],
         ]);
+
+        }
+
+            return response()->json([
+            'success' => true,
+            'message' => 'Login successful.',
+            'data' => [
+                'user'        => $user,
+                'token'       => $token,
+                'redirect_to' => route('home'),
+            ],
+        ]);
+
+
     }
 
     return response()->json([
@@ -188,10 +218,13 @@ public function login(Request $request)
 
 
 
-    public function logout(Request $request)
+       public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
-
-        return $this->successMessage('Logout successful.');
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        
+        return redirect('/')->with('success', 'Logged out successfully!');
     }
+
 }
