@@ -1,3 +1,4 @@
+{{-- resources/views/seller/dashboard.blade.php --}}
 @extends('layouts.seller')
 
 @section('title','VibeMart Seller - Dashboard')
@@ -11,10 +12,10 @@
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="text-muted-soft small">Today’s Sales</span>
                 <span class="badge bg-success-subtle text-success border border-success-subtle">
-                    +8%
+                    +{{ $stats['sales_growth'] ?? '0' }}%
                 </span>
             </div>
-            <div class="h3 mb-1">₹ 12,340</div>
+            <div class="h3 mb-1">₹ {{ number_format($stats['today_sales'] ?? 0, 0) }}</div>
             <div class="small text-muted-soft">Compared to yesterday</div>
         </div>
     </div>
@@ -25,7 +26,7 @@
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="text-muted-soft small">Orders (Today)</span>
             </div>
-            <div class="h3 mb-1">18</div>
+            <div class="h3 mb-1">{{ $stats['today_orders'] ?? 0 }}</div>
             <div class="small text-muted-soft">New orders placed</div>
         </div>
     </div>
@@ -36,7 +37,7 @@
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="text-muted-soft small">Active Products</span>
             </div>
-            <div class="h3 mb-1">145</div>
+            <div class="h3 mb-1">{{ $stats['active_products'] ?? 0 }}</div>
             <div class="small text-muted-soft">Visible in storefront</div>
         </div>
     </div>
@@ -47,7 +48,7 @@
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="text-muted-soft small">Low Stock</span>
             </div>
-            <div class="h3 mb-1">11</div>
+            <div class="h3 mb-1">{{ $stats['low_stock'] ?? 11 }}</div>
             <div class="small text-muted-soft">Need restocking</div>
         </div>
     </div>
@@ -74,36 +75,36 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
+                    <!-- <tr>
                         <td>#S-1201</td>
-                        <td>Rahul Sharma</td>
-                        <td>3</td>
-                        <td>₹ 2,899</td>
+                        <td>{{ $recentOrders[0]['customer_name'] ?? '' }}</td>
+                        <td>{{ $recentOrders[0]['items_count'] ?? 0 }}</td>
+                        <td>₹ {{ number_format($recentOrders[0]['total'] ?? 0, 0) }}</td>
                         <td>
-                            <span class="badge bg-info-subtle text-info border border-info-subtle">Processing</span>
+                            <span class="badge bg-info-subtle text-info border border-info-subtle">{{ $recentOrders[0]['status_label'] ?? 'Processing' }}</span>
                         </td>
-                        <td>15 min ago</td>
+                        <td>{{ $recentOrders[0]['created_at_diff'] ?? '15 min ago' }}</td>
                     </tr>
                     <tr>
                         <td>#S-1200</td>
-                        <td>Ananya Patel</td>
-                        <td>1</td>
-                        <td>₹ 799</td>
+                        <td>{{ $recentOrders[1]['customer_name'] ?? 'Ananya Patel' }}</td>
+                        <td>{{ $recentOrders[1]['items_count'] ?? 1 }}</td>
+                        <td>₹ {{ number_format($recentOrders[1]['total'] ?? 799, 0) }}</td>
                         <td>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle">Dispatched</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">{{ $recentOrders[1]['status_label'] ?? 'Dispatched' }}</span>
                         </td>
-                        <td>45 min ago</td>
+                        <td>{{ $recentOrders[1]['created_at_diff'] ?? '45 min ago' }}</td>
                     </tr>
                     <tr>
                         <td>#S-1199</td>
-                        <td>Guest</td>
-                        <td>2</td>
-                        <td>₹ 1,499</td>
+                        <td>{{ $recentOrders[2]['customer_name'] ?? 'Guest' }}</td>
+                        <td>{{ $recentOrders[2]['items_count'] ?? 2 }}</td>
+                        <td>₹ {{ number_format($recentOrders[2]['total'] ?? 1499, 0) }}</td>
                         <td>
-                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle">{{ $recentOrders[2]['status_label'] ?? 'Pending' }}</span>
                         </td>
-                        <td>1 hr ago</td>
-                    </tr>
+                        <td>{{ $recentOrders[2]['created_at_diff'] ?? '1 hr ago' }}</td>
+                    </tr> -->
                     </tbody>
                 </table>
             </div>
@@ -116,20 +117,20 @@
             <h6 class="mb-2">Sales Summary</h6>
             <div class="d-flex justify-content-between small mb-1">
                 <span class="text-muted-soft">Today</span>
-                <span>₹ 12,340</span>
+                <span>₹ {{ number_format($stats['today_sales'] ?? 0, 0) }}</span>
             </div>
             <div class="d-flex justify-content-between small mb-1">
                 <span class="text-muted-soft">This week</span>
-                <span>₹ 84,210</span>
+                <span>₹ {{ number_format($stats['week_sales'] ?? 0, 0) }}</span>
             </div>
             <div class="d-flex justify-content-between small mb-2">
                 <span class="text-muted-soft">This month</span>
-                <span>₹ 3,42,560</span>
+                <span>₹ {{ number_format($stats['month_sales'] ?? 0, 0) }}</span>
             </div>
             <hr class="border-secondary my-2">
             <div class="d-flex justify-content-between small fw-semibold">
                 <span>Payout pending</span>
-                <span>₹ 45,800</span>
+                <span>₹ {{ number_format($stats['payout_pending'] ?? 0, 0) }}</span>
             </div>
         </div>
 
@@ -144,7 +145,7 @@
                 <span class="small">Add New Product</span>
             </a>
             <a href="#" class="d-block text-decoration-none mb-2">
-                <i class="fas fa-arrow-repeat me-2 text-info"></i>
+                <i class="bi bi-card-list me-2 "></i>
                 <span class="small">Update Stock</span>
             </a>
             <a href="#" class="d-block text-decoration-none">
