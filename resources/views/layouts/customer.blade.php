@@ -145,6 +145,8 @@
 
         .text-muted-soft{color:var(--vm-muted);}
 
+        
+
         @media (max-width: 991.98px){
             .vm-sidebar{display:none;}
             .vm-main{flex:1;}

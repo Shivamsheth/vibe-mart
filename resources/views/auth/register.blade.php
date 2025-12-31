@@ -132,7 +132,7 @@
 
             <div class="small text-secondary">
                 <span class="opacity-75">Already registered?</span>
-                <a href="{{ route('login') }}" class="link-light fw-semibold text-decoration-none ms-1">
+                <a href="{{ route('login.view') }}" class="link-light fw-semibold text-decoration-none ms-1">
                     Sign in instead →
                 </a>
             </div>
@@ -184,7 +184,7 @@
                             <span class="input-icon">
                                 <i class="bi bi-telephone"></i>
                             </span>
-                            <input name="phone" class="form-control" placeholder="9876543210" required>
+                            <input name="phone" class="form-control" placeholder="9876543210" maxlength=10 required>
                         </div>
                     </div>
 

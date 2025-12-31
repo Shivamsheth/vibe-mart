@@ -184,7 +184,7 @@
                             <span class="input-icon">
                                 <i class="bi bi-telephone"></i>
                             </span>
-                            <input name="phone" class="form-control" placeholder="9876543210" required>
+                            <input name="phone" class="form-control" placeholder="9876543210" maxlength=10 required>
                         </div>
                     </div>
 

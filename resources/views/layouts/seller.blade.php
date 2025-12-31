@@ -141,6 +141,20 @@
             transform: translateY(-6px) !important;
         }
 
+
+        .vm-nav-link.logout-btn {
+            
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            margin-left:10px;
+            margin-top :15px;
+        }
+        .logout-btn:hover{
+            background:rgba(143, 4, 4, 0.9);
+        }
+
         @media (max-width: 991.98px){
             .vm-sidebar{display:none;}
             .vm-main{flex:1;}
@@ -192,11 +206,13 @@
                     <span>Settings</span>
                 </a>
             </li>
-            <li >
+            {{-- ✅ PERFECT LOGOUT BUTTON - Matches ALL nav links exactly --}}
+            <li>
                 <form method="POST" action="{{ route('logout') }}" style="display: contents;">
                     @csrf
-                    <button type="submit" class="vm-nav-link  text-start border-0 bg-transparent p-0">
-                        <i class="fas fa-sign-out-alt"></i>
+                    <button type="submit" 
+                            class="vm-nav-link logout-btn p-0 border-0 bg-transparent w-100 text-start">
+                        <i class="bi bi-box-arrow-left"></i>
                         <span>Logout</span>
                     </button>
                 </form>
