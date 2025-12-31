@@ -22,4 +22,7 @@ class DashboardController extends Controller
     public function support(){
         return view('customer.support');
     }
+    public function wishlist(){
+        return view('customer.wishlist');
+    }
 }

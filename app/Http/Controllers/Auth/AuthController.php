@@ -19,18 +19,17 @@ class AuthController extends Controller
     {
         try {
             $request->validate([
-                'name'             => 'required|string|max:100',
-                'email'            => 'required|email|unique:users,email',
-                'phone'            => 'required|string|min:10|max:15|unique:users,phone',
-                'password'         => 'required|string|min:8',
-                'confirm_password' => 'required|same:password',
-
-                'type'    => 'required|in:admin,customer,seller',
-                'address' => 'required|string|max:255',
-                'city'    => 'required|string|max:100',
-                'state'   => 'required|string|max:100',
-                'pincode' => 'required|string|min:4|max:10',
-                'country' => 'required|string|max:100',
+                'name'              => 'required|string|max:100',
+                'email'             => 'required|email|unique:users,email',
+                'phone'             => 'required|string|min:10|max:15|unique:users,phone',
+                'password'          => 'required|string|min:8',
+                'confirm_password'  => 'required|same:password',
+                'type'              => 'required|in:admin,customer,seller',
+                'address'           => 'required|string|max:255',
+                'city'              => 'required|string|max:100',
+                'state'             => 'required|string|max:100',
+                'pincode'           => 'required|string|min:4|max:10',
+                'country'           => 'required|string|max:100',
             ]);
         } catch (ValidationException $e) {
             return $this->validationErrors($e->errors());
@@ -50,23 +49,24 @@ class AuthController extends Controller
                 }
             }
 
-            $otp          = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+            $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
             $otpExpiresAt = now()->addMinutes(5);
 
             $user = User::create([
-                'name'     => $request->name,
-                'email'    => $request->email,
-                'phone'    => $request->phone,
-                'password' => Hash::make($request->password),
-                'type'     => $request->type ?? 'customer',
-                'address'  => $request->address,
-                'city'     => $request->city,
-                'state'    => $request->state,
-                'pincode'  => $request->pincode,
-                'country'  => $request->country,
-                'otp'             => $otp,
-                'otp_expires_at'  => $otpExpiresAt,
-                'email_verified_at' => null,
+                'name'              => $request->name,
+                'email'             => $request->email,
+                'phone'             => $request->phone,
+                'password'          => Hash::make($request->password),
+                'type'              => $request->type ?? 'customer',
+                'address'           => $request->address,
+                'city'              => $request->city,
+                'state'             => $request->state,
+                'pincode'           => $request->pincode,
+                'country'           => $request->country,
+                'otp'               => $otp,
+                'otp_expires_at'    => $otpExpiresAt,
+                'email_verified_at' => false,  // ✅ FIXED: boolean false instead of null
+                'is_active'         => false,  // ✅ New users inactive until email verified
             ]);
 
             SendVerificationMail::dispatch($user, $otp)->onQueue('emails');
@@ -89,10 +89,10 @@ class AuthController extends Controller
             ]);
 
             $user = User::where('email', $request->email)
-                ->whereNull('email_verified_at')
+                ->where('email_verified_at', false)  // ✅ boolean check
                 ->first();
 
-            if (! $user) {
+            if (!$user) {
                 return $this->error('User not found or already verified', 404);
             }
 
@@ -105,13 +105,14 @@ class AuthController extends Controller
             }
 
             $user->update([
-                'email_verified_at' => now(),
+                'email_verified_at' => true,     // ✅ boolean true
+                'is_active'         => true,     // ✅ Activate user
                 'otp'               => null,
                 'otp_expires_at'    => null,
                 'otp_attempts'      => 0,
             ]);
 
-            return $this->successMessage('Email verified successfully.');
+            return $this->successMessage('Email verified successfully! You can now login.');
         } catch (ValidationException $e) {
             return $this->validationErrors($e->errors());
         } catch (\Exception $e) {
@@ -127,10 +128,10 @@ class AuthController extends Controller
             ]);
 
             $user = User::where('email', $request->email)
-                ->whereNull('email_verified_at')
+                ->where('email_verified_at', false)  // ✅ boolean check
                 ->first();
 
-            if (! $user) {
+            if (!$user) {
                 return $this->error('User not found or already verified.', 404);
             }
 
@@ -138,11 +139,11 @@ class AuthController extends Controller
                 return $this->error('Previous OTP is still valid. Please wait before requesting a new one.', 400);
             }
 
-            $otp          = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+            $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
             $otpExpiresAt = now()->addMinutes(5);
 
             $user->update([
-                'otp'            => $otp,
+                'otp'           => $otp,
                 'otp_expires_at' => $otpExpiresAt,
             ]);
 
@@ -156,69 +157,56 @@ class AuthController extends Controller
         }
     }
 
-public function login(Request $request)
-{
-    $credentials = $request->validate([
-        'email'    => ['required', 'email'],
-        'password' => ['required'],
-    ]);
-
-    if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
-        $request->session()->regenerate();
-
-        $user  = Auth::guard('web')->user();
-        $token = $user->createToken('api-token')->plainTextToken;
-
-        if($user->type == 'admin'){
-            return response()->json([
-            'success' => true,
-            'message' => 'Login successful.',
-            'data' => [
-                'user'        => $user,
-                'token'       => $token,
-                'redirect_to' => route('admin.dashboard'),
-            ],
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email'    => ['required', 'email'],
+            'password' => ['required'],
         ]);
 
+        if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
+            $request->session()->regenerate();
+
+            $user = Auth::guard('web')->user();
+            
+            // ✅ BLOCK LOGIN if email not verified (except admin)
+            if (!$user->email_verified_at && $user->type !== 'admin') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please verify your email before logging in.',
+                ], 403);
+            }
+
+            $token = $user->createToken('api-token')->plainTextToken;
+
+            $redirectTo = match($user->type) {
+                'admin' => route('admin.dashboard'),
+                'seller' => route('seller.dashboard'),
+                default => route('home')
+            };
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Login successful.',
+                'data' => [
+                    'user'        => $user,
+                    'token'       => $token,
+                    'redirect_to' => $redirectTo,
+                ],
+            ]);
         }
 
-
-
-        if($user->type == 'seller'){
         return response()->json([
-            'success' => true,
-            'message' => 'Login successful.',
-            'data' => [
-                'user'        => $user,
-                'token'       => $token,
-                'redirect_to' => route('seller.dashboard'),
-            ],
-        ]);
-
-        }
-
-            return response()->json([
-            'success' => true,
-            'message' => 'Login successful.',
-            'data' => [
-                'user'        => $user,
-                'token'       => $token,
-                'redirect_to' => route('home'),
-            ],
-        ]);
-
-
+            'success' => false,
+            'message' => 'Invalid credentials.',
+        ], 422);
     }
 
-    return response()->json([
-        'success' => false,
-        'message' => 'Invalid credentials.',
-    ], 422);
-}
-
-
-
-       public function logout(Request $request)
+    public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
@@ -226,5 +214,4 @@ public function login(Request $request)
         
         return redirect('/')->with('success', 'Logged out successfully!');
     }
-
 }

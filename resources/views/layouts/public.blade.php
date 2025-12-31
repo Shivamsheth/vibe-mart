@@ -34,23 +34,7 @@
             padding-top: 80px;
         }
         
-        /* 🔥 COMPACT card - exact screenshot match */
-        .card-soft {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            backdrop-filter: blur(16px);
-            transition: all 0.25s ease;
-            overflow: hidden;
-        }
-        
-        .card-soft:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.15);
-            border-color: var(--purple);
-        }
-        
-        /* 🔥 COMPACT navbar */
+        /* 🔥 CENTERED SEARCH BAR IN NAVBAR */
         .navbar {
             background: rgba(10, 10, 26, 0.95);
             backdrop-filter: blur(20px);
@@ -66,6 +50,48 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+        
+        /* 🔥 CENTRAL SEARCH BAR */
+        .navbar-center-search {
+            max-width: 800px;
+            flex: 1;
+        }
+        
+        .navbar-center-search .input-group {
+            background: rgba(15, 15, 41, 0.9);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+            height: 42px;
+        }
+        
+        .navbar-center-search .form-control {
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            color: var(--text) !important;
+            font-size: 0.95rem;
+            padding: 0.5rem 1rem;
+            height: 42px;
+        }
+        
+        .navbar-center-search .input-group-text {
+            background: transparent !important;
+            border: none !important;
+            border-radius: 25px 0 0 25px !important;
+            color: var(--text-muted);
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .navbar-center-search .form-control:focus {
+            box-shadow: none;
+            background: transparent !important;
+        }
+        
+        .navbar-center-search .form-control::placeholder {
+            color: var(--text-muted);
         }
         
         .nav-link {
@@ -119,14 +145,6 @@
             color: var(--text) !important;
         }
         
-        .input-group-text {
-            background: rgba(15, 15, 41, 0.8) !important;
-            border-color: var(--border) !important;
-            border-radius: 8px 0 0 8px !important;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-        
         .text-muted-soft { color: var(--text-muted) !important; }
         .text-xs { font-size: 0.75rem !important; }
         
@@ -155,58 +173,66 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container-fluid">
+            {{-- 🔥 LEFT: Brand --}}
             <a class="navbar-brand fw-semibold" href="{{ route('home') }}">
                 <i class="fas fa-shopping-bag me-1"></i>VibeMart
             </a>
-            <button class="navbar-toggler p-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    @guest
-                        <li class="nav-item">
-                            <a class="btn btn-outline-light btn-sm me-2 px-3 py-1" href="{{ route('login.view') }}">
-                                <i class="fas fa-sign-in-alt me-1"></i>Login
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-primary btn-sm px-3 py-1" href="{{ route('register.view') }}">
-                                <i class="fas fa-user-plus me-1"></i>Join
-                            </a>
-                        </li>
-                    {{-- In layouts/public.blade.php - Update dropdown --}}
-@else
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle d-flex align-items-center px-2 py-1" href="#" data-bs-toggle="dropdown">
-            <img src="{{ auth()->user()->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode(auth()->user()->name).'&size=28&background=6366f1&color=fff' }}" 
-                 class="rounded-circle me-1" style="width:28px;height:28px;">
-            <span class="d-none d-md-inline text-xs">{{ Str::limit(auth()->user()->name, 12) }}</span>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-1" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; min-width: 200px;">
-            <li><span class="dropdown-item-text px-3 py-2 small text-muted-soft">{{ auth()->user()->email }}</span></li>
-            <li><hr class="dropdown-divider mx-2 my-1"></li>
-            <li><a class="dropdown-item px-3 py-1" href="{{ route('customer.profile') }}"><i class="fas fa-user me-2 text-primary"></i>Profile</a></li>
-            <li><a class="dropdown-item px-3 py-1" href="{{ route('customer.orders') }}"><i class="fas fa-shopping-bag me-2 text-success"></i>My Orders</a></li>
-            <li><a class="dropdown-item px-3 py-1" href="{{ route('customer.cart') }}"><i class="fas fa-shopping-cart me-2 text-warning"></i>Cart</a></li>
-            <li><a class="dropdown-item px-3 py-1" href="{{ route('customer.support') }}"><i class="fas fa-headset me-2 text-info"></i>Support</a></li>
-            @if(auth()->user()->type === 'seller')
-            <li><hr class="dropdown-divider mx-2 my-1"></li>
-            <li><a class="dropdown-item px-3 py-1" href="{{ route('seller.dashboard') }}"><i class="fas fa-store me-2 text-warning"></i>Seller Dashboard</a></li>
-            @endif
-            <li><hr class="dropdown-divider mx-2 my-1"></li>
-            <li>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="dropdown-item w-100 text-start px-3 py-1 border-0 bg-transparent" type="submit">
-                        <i class="fas fa-sign-out-alt me-2 text-danger"></i>Logout
-                    </button>
-                </form>
-            </li>
-        </ul>
-    </li>
-@endguest
 
-                </ul>
+            {{-- 🔥 CENTER: SEARCH BAR --}}
+            <div class="navbar-center-search mx-auto">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" class="form-control border-0" 
+                           id="globalSearch" placeholder="Search products..." 
+                           value="{{ request('search') }}">
+                    <button class="btn btn-primary px-3" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            {{-- 🔥 RIGHT: User Menu --}}
+            <div class="navbar-nav ms-auto">
+                @guest
+                    <a class="btn btn-outline-light btn-sm me-2" href="{{ route('login.view') }}">
+                        <i class="fas fa-sign-in-alt me-1"></i>Login
+                    </a>
+                    <a class="btn btn-primary btn-sm" href="{{ route('register.view') }}">
+                        <i class="fas fa-user-plus me-1"></i>Join
+                    </a>
+                @else
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center px-2 py-1" href="#" data-bs-toggle="dropdown">
+                            <img src="{{ auth()->user()->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode(auth()->user()->name).'&size=28&background=6366f1&color=fff' }}" 
+                                 class="rounded-circle me-1" style="width:28px;height:28px;">
+                            <span class="d-none d-md-inline text-xs">{{ Str::limit(auth()->user()->name, 12) }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-1" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; min-width: 200px;">
+                            <li><span class="dropdown-item-text px-3 py-2 small text-muted-soft">{{ auth()->user()->email }}</span></li>
+                            <li><hr class="dropdown-divider mx-2 my-1"></li>
+                            <li><a class="dropdown-item px-3 py-1 text-muted-soft" href="{{ route('customer.profile') }}"><i class="fas fa-user me-2 text-primary"></i>Profile</a></li>
+                            <li><a class="dropdown-item px-3 py-1 text-muted-soft" href="{{ route('customer.wishlist') }}"><i class="fas fa-heart me-2 text-info"></i>Wishlist</a></li>
+                            <li><a class="dropdown-item px-3 py-1 text-muted-soft" href="{{ route('customer.cart') }}"><i class="fas fa-shopping-cart me-2 text-warning"></i>Cart</a></li>
+                            <li><a class="dropdown-item px-3 py-1 text-muted-soft" href="{{ route('customer.orders') }}"><i class="fas fa-shopping-bag me-2 text-success"></i>My Orders</a></li>
+                            <li><a class="dropdown-item px-3 py-1 text-muted-soft" href="{{ route('customer.support') }}"><i class="fas fa-headset me-2 text-info"></i>Support</a></li>
+                            @if(auth()->user()->type === 'seller')
+                            <li><hr class="dropdown-divider mx-2 my-1"></li>
+                            <li><a class="dropdown-item px-3 py-1" href="{{ route('seller.dashboard') }}"><i class="fas fa-store me-2 text-warning"></i>Seller Dashboard</a></li>
+                            @endif
+                            <li><hr class="dropdown-divider mx-2 my-1"></li>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button class="dropdown-item w-100 text-start px-3 py-1 border-0 bg-transparent text-muted-soft" type="submit">
+                                        <i class="fas fa-sign-out-alt me-2 text-danger"></i>Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                @endguest
             </div>
         </div>
     </nav>

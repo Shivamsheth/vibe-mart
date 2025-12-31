@@ -7,6 +7,7 @@ use App\Http\Controllers\Seller\DashboardController as SellerDashboardController
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\HomeController; // 🔥 NEW: Public Home
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,8 @@ use App\Http\Controllers\HomeController; // 🔥 NEW: Public Home
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::view('/login', 'auth.login')->name('login.view');
 Route::view('/register', 'auth.register')->name('register.view');
+Route::view('/verify-otp','auth.verify-otp')->name('verify-otp');
+Route::view('/resend-otp','auth.resend-otp')->name('resend.view');
 
 // 🔥 PUBLIC PRODUCT DETAIL - NO AUTH REQUIRED
 Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('product.show');
@@ -64,5 +67,11 @@ Route::post('/products/{product}', [ProductController::class, 'update'])->name('
         Route::get('/orders',[CustomerDashboardController::class,'orders'])->name('customer.orders');
         Route::get('/cart',[CustomerDashboardController::class,'cart'])->name('customer.cart');
         Route::get('/support-system',[CustomerDashboardController::class,'support'])->name('customer.support');
+        Route::get('/wishlist',[CustomerDashboardController::class,'wishlist'])->name('customer.wishlist');
+
     }); 
+
+    Route::prefix('admin')->group(function(){
+        Route::get('/customers-list',[AdminProductController::class,'seller'])->name('admin.customers-list');
+    });
 });
