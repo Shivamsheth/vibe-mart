@@ -182,7 +182,7 @@
                 </a>
             </li>
             <li>
-                <a href="#" class="vm-nav-link">
+                <a href="<?php echo e(route('admin.products.index')); ?>" class="vm-nav-link">
                     <i class="bi bi-box-seam"></i>
                     <span>Products</span>
                 </a>

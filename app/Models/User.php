@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Product;
 
 class User extends Authenticatable
 {
@@ -65,5 +66,17 @@ class User extends Authenticatable
     public function isOtpExpired(): bool
     {
         return $this->otp_expires_at && $this->otp_expires_at->isPast();
+    }
+      public function products()
+    {
+        return $this->hasMany(Product::class, 'seller_id');
+    }
+
+    /**
+     * Optional: Active products scope
+     */
+    public function activeProducts()
+    {
+        return $this->hasMany(Product::class, 'seller_id')->where('status', 'active');
     }
 }
