@@ -142,8 +142,22 @@
         }
 
         @media (max-width: 991.98px){
-            .vm-sidebar{display:none;} /* simple: hide sidebar on mobile for now */
+            .vm-sidebar{display:none;}
             .vm-main{flex:1;}
+        }
+
+        /* ✅ FIXED LOGOUT BUTTON - Matches nav links perfectly */
+        .vm-nav-link.logout-btn {
+            
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            margin-left:10px;
+            margin-top :15px;
+        }
+        .logout-btn:hover{
+            background:rgba(143, 4, 4, 0.9);
         }
     </style>
 
@@ -163,8 +177,8 @@
             <li>
                 <a href="{{ route('admin.dashboard') }}"
                    class="vm-nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                    <i class="bi bi-speedometer2"></i>
-                    <span>Dashboard</span>
+                   <i class="bi bi-speedometer2"></i>
+                   <span>Dashboard</span>
                 </a>
             </li>
             <li>
@@ -190,6 +204,17 @@
                     <i class="bi bi-gear"></i>
                     <span>Settings</span>
                 </a>
+            </li>
+            {{-- ✅ PERFECT LOGOUT BUTTON - Matches ALL nav links exactly --}}
+            <li>
+                <form method="POST" action="{{ route('logout') }}" style="display: contents;">
+                    @csrf
+                    <button type="submit" 
+                            class="vm-nav-link logout-btn p-0 border-0 bg-transparent w-100 text-start">
+                        <i class="bi bi-box-arrow-left"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
             </li>
         </ul>
 
