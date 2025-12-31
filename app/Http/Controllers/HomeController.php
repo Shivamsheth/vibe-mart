@@ -19,9 +19,17 @@ class HomeController extends Controller
             ->where('status', 'active') 
             ->where('is_visible', true)    
             ->when($request->search, function($q) use ($request) {
-                $q->where(function($query) use ($request) {
-                    $query->where('name', 'like', "%{$request->search}%")
-                          ->orWhere('short_description', 'like', "%{$request->search}%");
+                $searchLower = strtolower(trim($request->search));
+                $q->where(function($query) use ($searchLower) {
+                    // 🔥 AMAZON FUZZY SEARCH - Multiple fields
+                    $query->whereRaw('LOWER(name) LIKE ?', ["%{$searchLower}%"])
+                          ->orWhereRaw('LOWER(brand) LIKE ?', ["%{$searchLower}%"])
+                          ->orWhereRaw('LOWER(short_description) LIKE ?', ["%{$searchLower}%"])
+                          ->orWhereRaw('LOWER(description) LIKE ?', ["%{$searchLower}%"])
+                          // Category name search
+                          ->orWhereHas('category', function($cat) use ($searchLower) {
+                              $cat->whereRaw('LOWER(name) LIKE ?', ["%{$searchLower}%"]);
+                          });
                 });
             })
             ->when($request->category, function($q) use ($request) {
