@@ -8,11 +8,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h6 class="mb-0 fw-semibold">All Products ({{ $products->total() ?? 0 }})</h6>
-    <div class="input-group input-group-sm" style="width: 280px;">
-        <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search"></i></span>
-        <input type="text" class="form-control bg-transparent border-start-0 ps-0" 
-               id="searchInput" placeholder="Search products..." value="{{ request('search') }}">
-    </div>
+    
 </div>
 
 <div class="row align-items-center g-2 mb-4">
@@ -26,13 +22,8 @@
             @endforeach
         </select>
     </div>
-    <div class="col-md-2">
-        <div class="d-flex gap-1">
-            <button class="btn btn-outline-light btn-sm px-2 active" id="gridView"><i class="fas fa-th"></i></button>
-            <button class="btn btn-outline-light btn-sm px-2" id="listView"><i class="fas fa-list"></i></button>
-        </div>
-    </div>
-    <div class="col-md-7 text-md-end">
+    
+    <div class="col-md-9 text-md-end">
         <div class="d-flex align-items-center gap-2 justify-content-end">
             <span class="text-muted-soft small me-2">Sort:</span>
             <select class="form-select form-select-sm" id="sortSelect" style="width: 160px;">
@@ -81,12 +72,7 @@
                 @endif
 
                 {{-- Quick Actions - Top Right --}}
-                <div class="position-absolute top-2 end-3 p-2 z-3">
-                    <button class="btn btn-sm p-1 text-white-50 wishlist-btn shadow-none border-0 bg-transparent rounded-circle" 
-                            data-product-id="{{ $product->id }}" title="Wishlist" style="width: 32px; height: 32px;">
-                        <i class="far fa-heart fs-5"></i>
-                    </button>
-                </div>
+               
             </div>
 
             {{-- Content - Flexible Height --}}
@@ -97,7 +83,15 @@
                         <small class="badge bg-primary-subtle text-primary text-xs px-2 py-1">
                             {{ $product->category->name }}
                         </small>
+                         
                     </div>
+
+                    <div class="position-absolute top-2 end-3 p-2 z-3">
+                    <button class="btn btn-sm p-1 text-white-50 wishlist-btn shadow-none border-0 bg-transparent rounded-circle" 
+                            data-product-id="{{ $product->id }}" title="Wishlist" style="width: 32px; height: 32px;">
+                        <i class="far fa-heart fs-5"></i>
+                    </button>
+                </div>
                 @endif
 
                 {{-- Title --}}
@@ -198,6 +192,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    
+
     // Client-side filtering
     if (searchInput && categoryFilter) {
         function filterProducts() {
@@ -251,6 +247,29 @@ document.addEventListener('DOMContentLoaded', function() {
             if (img) img.style.transform = 'scale(1)';
         });
     });
+
+    // ADDED: Global navbar search handler
+        const globalSearch = document.getElementById('globalSearch');
+        const searchBtn = document.getElementById('searchBtn');
+
+        // Already handles case-insensitive + spaces
+function performGlobalSearch() {
+    const term = globalSearch.value.trim();  // "iPhone 14" → "iphone 14"
+    const params = new URLSearchParams(window.location.search);
+    if (term) {
+        params.set('search', term);  // ?search=iPhone 14
+    } else {
+        params.delete('search');
+    }
+    window.location.search = params.toString();
+}
+
+
+        globalSearch.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performGlobalSearch();
+        });
+        searchBtn.addEventListener('click', performGlobalSearch);
+
 
     // Wishlist toggle
     document.querySelectorAll('.wishlist-btn').forEach(btn => {
