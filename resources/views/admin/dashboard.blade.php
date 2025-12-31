@@ -41,10 +41,8 @@
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="text-muted-soft small">Active Customers</span>
             </div>
-            <div class="h3 mb-1">132</div>
-            <div class="small text-muted-soft">
-                Logged in last 7 days
-            </div>
+            <div class="h3 mb-1">{{ $stats['active_customers'] ?? 0 }}</div>
+            
         </div>
     </div>
 
@@ -54,7 +52,7 @@
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="text-muted-soft small">Low Stock</span>
             </div>
-            <div class="h3 mb-1">8</div>
+            <div class="h3 mb-1">{{ $stats['low_stock'] }}</div>
             <div class="small text-muted-soft">
                 Products below threshold
             </div>

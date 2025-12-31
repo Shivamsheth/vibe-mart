@@ -208,7 +208,7 @@ form.addEventListener('submit', async function (e) {
     spinner.classList.remove('d-none');
 
     try {
-        const res  = await fetch('/api/auth/verify', {
+        const res  = await fetch('/api/auth/verify-otp', {
             method:'POST',
             headers:{
                 'Content-Type':'application/json',
