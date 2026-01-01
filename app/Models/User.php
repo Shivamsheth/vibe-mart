@@ -1,19 +1,16 @@
 <?php
+// app/Models/User.php
 
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\Product;
 
 class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
 
-    /**
-     * ✅ ALL FIELDS FOR MASS ASSIGNMENT
-     */
     protected $fillable = [
         'name',
         'email',
@@ -33,18 +30,12 @@ class User extends Authenticatable
         'last_login_at',
     ];
 
-    /**
-     * Hide sensitive fields from JSON response
-     */
     protected $hidden = [
         'password',
         'otp',
         'remember_token',
     ];
 
-    /**
-     * Cast attributes to correct types
-     */
     protected $casts = [
         'email_verified_at' => 'boolean',
         'otp_expires_at' => 'datetime',
@@ -55,9 +46,13 @@ class User extends Authenticatable
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Helper methods
-     */
+    // ✅ CORRECT RELATIONSHIPS (User → Others)
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'seller_id');
+    }
+
+    // ✅ Helper methods (KEEP THESE)
     public function isEmailVerified(): bool
     {
         return $this->email_verified_at;
@@ -67,14 +62,7 @@ class User extends Authenticatable
     {
         return $this->otp_expires_at && $this->otp_expires_at->isPast();
     }
-      public function products()
-    {
-        return $this->hasMany(Product::class, 'seller_id');
-    }
 
-    /**
-     * Optional: Active products scope
-     */
     public function activeProducts()
     {
         return $this->hasMany(Product::class, 'seller_id')->where('status', 'active');
