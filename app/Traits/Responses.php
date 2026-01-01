@@ -104,6 +104,10 @@ trait Responses
         return $this->success($data, $message, 200);
     }
 
+    protected function invalidPaymentMethod(string $message = "Payment method not allowed"): JsonResponse{
+        return $this->error($message,403);
+    }
+
     /**
      * Deleted response
      */
