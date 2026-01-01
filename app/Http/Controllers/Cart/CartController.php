@@ -60,10 +60,12 @@ class CartController extends Controller
         $cartCount = array_sum(array_column($cart, 'quantity'));
         session(['cart_count' => $cartCount]);
 
+        // 🔥 LIVE COUNTER SUPPORT
         return response()->json([
             'success' => true,
             'message' => 'Added to cart successfully!',
-            'cart_count' => $cartCount
+            'cart_count' => $cartCount,
+            'cart' => $cart  // 👈 Full cart for live sync
         ]);
     }
 
@@ -84,20 +86,7 @@ class CartController extends Controller
     }
 
     /**
-     * 🔥 Get cart count (for navbar)
-     */
-    public function count()
-    {
-        $cart = session('cart', []);
-        $count = array_sum(array_column($cart, 'quantity'));
-        
-        return response()->json([
-            'count' => $count
-        ]);
-    }
-
-    /**
-     * 🔥 Update cart item quantity
+     * 🔥 Update cart item quantity (AJAX)
      */
     public function update(Request $request)
     {
@@ -130,14 +119,16 @@ class CartController extends Controller
         $cartCount = array_sum(array_column($cart, 'quantity'));
         session(['cart_count' => $cartCount]);
 
+        // 🔥 LIVE COUNTER SUPPORT
         return response()->json([
             'success' => true,
-            'cart_count' => $cartCount
+            'cart_count' => $cartCount,
+            'cart' => $cart  // 👈 Full cart for live sync
         ]);
     }
 
     /**
-     * 🔥 Remove single item
+     * 🔥 Remove single item (AJAX + Form)
      */
     public function remove(Request $request, $productId)
     {
@@ -149,36 +140,65 @@ class CartController extends Controller
             
             $cartCount = array_sum(array_column($cart, 'quantity'));
             session(['cart_count' => $cartCount]);
+
+            // 🔥 LIVE COUNTER SUPPORT - Check if AJAX
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Item removed successfully!',
+                    'cart_count' => $cartCount,
+                    'cart' => $cart  // 👈 Full cart for live sync
+                ]);
+            }
             
             return back()->with('success', 'Item removed from cart!');
+        }
+        
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Item not found in cart'
+            ], 404);
         }
         
         return back()->with('error', 'Item not found in cart.');
     }
 
     /**
-     * 🔥 Clear entire cart
+     * 🔥 Clear entire cart (AJAX + Form)
      */
-    /**
- * 🔥 Clear entire cart (POST - Safe for forms)
- */
-public function clear(Request $request)
-{
-    // Verify CSRF
-    if (!$request->has('_token')) {
-        return back()->with('error', 'Invalid request');
+    public function clear(Request $request)
+    {
+        // Verify CSRF
+        if (!$request->has('_token')) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Invalid request'
+                ], 422);
+            }
+            return back()->with('error', 'Invalid request');
+        }
+        
+        // Clear cart
+        session()->forget(['cart', 'cart_count']);
+        
+        // 🔥 LIVE COUNTER SUPPORT
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => '🛒 Cart cleared successfully!',
+                'cart_count' => 0,
+                'cart' => []  // 👈 Empty cart for live sync
+            ]);
+        }
+        
+        return redirect()->route('cart.show')
+            ->with('success', '🛒 Cart cleared successfully! Start shopping again.');
     }
-    
-    // Clear cart
-    session()->forget(['cart', 'cart_count']);
-    
-    return redirect()->route('cart.show')
-        ->with('success', '🛒 Cart cleared successfully! Start shopping again.');
-}
-
 
     /**
-     * 🔥 Get cart summary (optional - for mini-cart)
+     * 🔥 Get cart summary (for navbar/mini-cart)
      */
     public function summary()
     {
@@ -192,8 +212,21 @@ public function clear(Request $request)
 
         return response()->json([
             'count' => $totalItems,
-            'subtotal' => number_format($subtotal, 2),
-            'items' => array_values($cart)
+            'subtotal' => number_format($subtotal, 0),
+            'cart' => $cart  // 👈 Full cart
+        ]);
+    }
+
+    /**
+     * 🔥 Get live cart count only (lightweight)
+     */
+    public function count()
+    {
+        $cart = session('cart', []);
+        $count = array_sum(array_column($cart, 'quantity'));
+        
+        return response()->json([
+            'count' => $count
         ]);
     }
 }
