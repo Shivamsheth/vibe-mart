@@ -11962,3 +11962,7 @@ HINT:  Perhaps you meant to reference the column \"users.id\". at C:\\major-proj
 #47 C:\\major-project\\vibe-mart\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\major-projec...')
 #48 {main}
 "} 
+[2026-01-01 09:20:51] local.ERROR: Cannot use Illuminate\Support\Facades\Storage as Storage because the name is already in use {"userId":3,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Cannot use Illuminate\\Support\\Facades\\Storage as Storage because the name is already in use at C:\\major-project\\vibe-mart\\storage\\framework\\views\\0622d48dcf0f556dca462513bfc12524.php:5)
+[stacktrace]
+#0 {main}
+"} 

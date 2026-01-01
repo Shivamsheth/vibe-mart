@@ -41,13 +41,24 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="text-center">
-                                    <div class="d-flex align-items-center justify-content-center gap-1">
-                                        <button class="btn btn-sm btn-outline-light qty-minus" data-id="{{ $id }}">-</button>
-                                        <span class="qty-display badge bg-secondary px-3 py-2 fs-6">{{ $item['quantity'] }}</span>
-                                        <button class="btn btn-sm btn-outline-light qty-plus" data-id="{{ $id }}">+</button>
+                               <td class="text-center">
+                                    <div class="qty-controls d-flex align-items-center justify-content-center gap-1 p-1">
+                                        <button class="btn btn-xs qty-minus shadow-none border-0" 
+                                                data-id="{{ $id }}" 
+                                                style="width: 28px; height: 28px; padding: 0; font-size: 0.75rem; line-height: 1;">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <span class="qty-display badge bg-secondary px-2 py-1 fs-6 fw-bold mx-1" 
+                                            style="min-width: 32px; font-size: 0.9rem;" 
+                                            data-id="{{ $id }}">{{ $item['quantity'] }}</span>
+                                        <button class="btn btn-xs qty-plus shadow-none border-0" 
+                                                data-id="{{ $id }}" 
+                                                style="width: 28px; height: 28px; padding: 0; font-size: 0.75rem; line-height: 1;">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
                                     </div>
                                 </td>
+
                                 <td class="text-end">
                                     ₹{{ number_format($item['price'], 0) }}
                                 </td>
@@ -153,3 +164,46 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+<style>
+/* 🔥 Ultra Compact Quantity Buttons */
+.btn-xs {
+    width: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+    font-size: 0.75rem !important;
+    line-height: 1 !important;
+    border-radius: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: auto !important;
+}
+
+.btn-xs:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(255,255,255,0.15) !important;
+}
+
+.qty-controls {
+    background: rgba(255, 255, 255, 0.34);
+    border-radius: 20px;
+    padding: 4px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    gap: 4px;
+}
+
+.qty-display {
+    font-weight: 700 !important;
+    min-width: 32px !important;
+    font-size: 0.875rem !important;
+    padding: 4px 8px !important;
+}
+
+/* Mobile perfect */
+@media (max-width: 576px) {
+    .btn-xs { width: 24px !important; height: 24px !important; font-size: 0.7rem !important; }
+    .qty-display { min-width: 28px !important; font-size: 0.8rem !important; }
+}
+</style>
+
