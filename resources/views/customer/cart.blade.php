@@ -1,118 +1,146 @@
-{{-- resources/views/customer/cart.blade.php --}}
 @extends('layouts.public')
 
-@section('title', 'Shopping Cart')
+@section('title', 'Secure Checkout - VibeMart')
 
 @section('content')
-<div class="row g-4">
-    <div class="col-lg-8">
-        <div class="card-soft p-4 shadow-lg">
-            @if(empty($cart))
-                <div class="text-center py-8">
-                    <i class="fas fa-shopping-cart fa-4x text-muted-soft mb-4"></i>
-                    <h5 class="mb-3 text-muted-soft">Your cart is empty</h5>
-                    <p class="text-muted mb-4">Add some products to get started!</p>
-                    <a href="{{ route('home') }}" class="btn btn-primary px-4">
-                        <i class="fas fa-store me-2"></i>Start Shopping
-                    </a>
-                </div>
-            @else
-                <div class="table-responsive">
-                    <table class="table table-dark table-hover">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th class="text-center" style="width: 150px;">Quantity</th>
-                                <th class="text-end" style="width: 130px;">Price</th>
-                                <th class="text-end" style="width: 120px;">Total</th>
-                                <th class="text-center" style="width: 80px;">&nbsp;</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($cart as $id => $item)
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center gap-3">
-                                        <img src="{{ $item['image'] }}" class="rounded shadow-sm" 
-                                             style="width: 60px; height: 60px; object-fit: cover;" alt="">
-                                        <div>
-                                            <h6 class="mb-1">{{ Str::limit($item['name'], 40) }}</h6>
-                                            <small class="text-muted">₹{{ number_format($item['price'], 0) }}</small>
-                                        </div>
-                                    </div>
-                                </td>
-                               <td class="text-center">
-                                    <div class="qty-controls d-flex align-items-center justify-content-center gap-1 p-1">
-                                        <button class="btn btn-xs qty-minus shadow-none border-0" 
-                                                data-id="{{ $id }}" 
-                                                style="width: 28px; height: 28px; padding: 0; font-size: 0.75rem; line-height: 1;">
-                                            <i class="fas fa-minus"></i>
-                                        </button>
-                                        <span class="qty-display badge bg-secondary px-2 py-1 fs-6 fw-bold mx-1" 
-                                            style="min-width: 32px; font-size: 0.9rem;" 
-                                            data-id="{{ $id }}">{{ $item['quantity'] }}</span>
-                                        <button class="btn btn-xs qty-plus shadow-none border-0" 
-                                                data-id="{{ $id }}" 
-                                                style="width: 28px; height: 28px; padding: 0; font-size: 0.75rem; line-height: 1;">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </td>
+<div class="row g-4 g-lg-5">
 
-                                <td class="text-end">
-                                    ₹{{ number_format($item['price'], 0) }}
-                                </td>
-                                <td class="text-end fw-bold text-success h6">
-                                    ₹{{ number_format($item['price'] * $item['quantity'], 0) }}
-                                </td>
-                                <td class="text-center">
-                                    <form method="POST" action="{{ route('cart.remove', $id) }}" class="d-inline delete-form">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="btn btn-sm p-2 text-danger shadow-none border-0 bg-transparent" 
-                                                onclick="return confirm('Remove this item?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+    {{-- 🔥 LEFT: Checkout Form --}}
+    <div class="col-lg-7">
+        <div class="card-soft p-lg-5 p-4 shadow-xl rounded-3">
+
+            <h3 class="fw-bold mb-4">
+                <i class="fas fa-lock text-success me-2"></i>
+                Secure Checkout
+            </h3>
+
+            <form id="checkoutForm">
+
+                {{-- ================= Customer Info ================= --}}
+                <h6 class="fw-semibold mb-3 text-primary">
+                    <i class="fas fa-user me-2"></i>Customer Information
+                </h6>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="name" class="form-control form-control-lg" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Phone</label>
+                        <input type="text" name="phone" class="form-control form-control-lg" required>
+                    </div>
                 </div>
-                <div class="d-flex gap-2 mt-4 pt-3 border-top">
-                    <a href="{{ route('home') }}" class="btn btn-outline-light flex-grow-1">
-                        <i class="fas fa-arrow-left me-2"></i>Continue Shopping
-                    </a>
-                    <form method="POST" action="{{ route('cart.clear') }}" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-danger clear-cart-btn" onclick="return confirm('Clear entire cart? This cannot be undone.')">
-                            <i class="fas fa-trash me-1"></i>Clear Cart
-                        </button>
-                    </form>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control form-control-lg" required>
                 </div>
-            @endif
+
+                <div class="mb-4">
+                    <label class="form-label">Delivery Address</label>
+                    <textarea name="address" rows="2" class="form-control form-control-lg" required></textarea>
+                </div>
+
+                {{-- ================= Payment Method ================= --}}
+                <h6 class="fw-semibold mb-3 text-primary">
+                    <i class="fas fa-credit-card me-2"></i>Payment Method
+                </h6>
+
+                <div class="mb-3">
+                    <select name="payment_method" id="payment_method" class="form-select form-select-lg" required>
+                        <option value="">Select Payment Method</option>
+                        <option value="card">💳 Credit / Debit Card</option>
+                        <option value="upi">📱 UPI</option>
+                        <option value="cash">💵 Cash (Not Allowed)</option>
+                    </select>
+                </div>
+
+                {{-- ================= Card Details ================= --}}
+                <div id="cardSection" class="d-none mt-3">
+
+                    <div class="alert alert-info small mb-3">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Your card details are securely encrypted.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" name="card_number" class="form-control form-control-lg" placeholder="1234 5678 9012 3456">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Expiry</label>
+                            <input type="text" name="expiry" class="form-control form-control-lg" placeholder="MM/YY">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">CVV</label>
+                            <input type="password" name="cvv" class="form-control form-control-lg">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ================= Submit ================= --}}
+                <button class="btn btn-success btn-lg w-100 py-3 fw-bold mt-4 shadow-lg">
+                    <i class="fas fa-lock me-2"></i>Place Secure Order
+                </button>
+            </form>
+
+            <div id="checkoutResponse" class="mt-4"></div>
         </div>
     </div>
-    
-    <div class="col-lg-4">
-        <div class="card-soft p-4 sticky-top" style="top: 2rem;">
-            <h5 class="mb-4">Order Summary</h5>
-            <div class="mb-3 d-flex justify-content-between">
-                <span>{{ $totalItems ?? 0 }} Items</span>
-                <span class="h5">₹{{ number_format($subtotal ?? 0, 0) }}</span>
+
+    {{-- 🔥 RIGHT: Order Summary --}}
+    <div class="col-lg-5">
+        <div class="card-soft-summary p-lg-5 p-4 shadow-xl rounded-3 sticky-top">
+
+            <h4 class="fw-bold mb-4">
+                <i class="fas fa-receipt text-primary me-2"></i>
+                Order Summary
+            </h4>
+
+            {{-- Products --}}
+            @foreach(session('cart', []) as $item)
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="me-2">
+                        <div class="fw-semibold">{{ Str::limit($item['name'], 40) }}</div>
+                        <small class="text-muted-soft">Qty: {{ $item['quantity'] }}</small>
+                    </div>
+                    <div class="fw-semibold">
+                        ₹{{ number_format($item['price'] * $item['quantity'], 0) }}
+                    </div>
+                </div>
+            @endforeach
+
+            <hr class="border-custom">
+
+            {{-- Totals --}}
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted-soft">Subtotal</span>
+                <span class="fw-semibold">₹{{ number_format($subtotal ?? 0, 0) }}</span>
             </div>
-            <hr class="my-4">
-            <div class="d-flex justify-content-between h3 mb-4 fw-bold text-primary">
-                <span>Total:</span>
-                <span>₹{{ number_format($subtotal ?? 0, 0) }}</span>
+
+            <div class="d-flex justify-content-between mb-2 text-success">
+                <span class="text-muted-soft">Shipping</span>
+                <span class="fw-semibold">FREE</span>
             </div>
-            @if(!empty($cart))
-            <a href="#" class="btn btn-success w-100 btn-lg mb-3">
-                <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
-            </a>
-            @endif
-            <div class="text-center py-3 border-top">
-                <small class="text-muted">🛡️ Secure checkout</small>
+
+            <hr class="border-custom">
+
+            <div class="d-flex justify-content-between fs-4 fw-bold">
+                <span>Total</span>
+                <span class="text-primary">₹{{ number_format($subtotal ?? 0, 0) }}</span>
+            </div>
+
+            {{-- Trust Badges --}}
+            <div class="text-center mt-4 pt-3 border-top-custom">
+                <i class="fas fa-lock text-success fs-4 me-2"></i>
+                <i class="fas fa-shield-alt text-info fs-4 me-2"></i>
+                <small class="d-block mt-2 text-muted-soft">
+                    100% Secure • Encrypted Payments
+                </small>
             </div>
         </div>
     </div>
@@ -121,89 +149,33 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Quantity +/- buttons
-    document.querySelectorAll('.qty-plus, .qty-minus').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = this.dataset.id;
-            const isPlus = this.classList.contains('qty-plus');
-            const display = document.querySelector(`[data-id="${productId}"]`).closest('td').querySelector('.qty-display');
-            let currentQty = parseInt(display.textContent);
-            let newQty = isPlus ? currentQty + 1 : Math.max(1, currentQty - 1);
-            
-            fetch('{{ route("cart.update") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    quantity: newQty
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    display.textContent = newQty;
-                    // Reload page to update totals (or implement live update)
-                    setTimeout(() => location.reload(), 100);
-                }
-            });
-        });
+const paymentMethod = document.getElementById('payment_method');
+const cardSection = document.getElementById('cardSection');
+const form = document.getElementById('checkoutForm');
+const responseBox = document.getElementById('checkoutResponse');
+
+paymentMethod.addEventListener('change', () => {
+    cardSection.classList.toggle('d-none', paymentMethod.value !== 'card');
+});
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    responseBox.innerHTML = '';
+
+    const res = await fetch("{{ url('/api/checkout/order') }}", {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: new FormData(form)
     });
 
-    // Form delete confirmation
-    document.querySelectorAll('.delete-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            if (!confirm('Are you sure?')) {
-                e.preventDefault();
-            }
-        });
-    });
+    const data = await res.json();
+
+    responseBox.innerHTML = `
+        <div class="alert ${res.ok ? 'alert-success' : 'alert-danger'} shadow-sm">
+            <pre class="mb-0">${JSON.stringify(data, null, 2)}</pre>
+        </div>
+    `;
 });
 </script>
 @endpush
-<style>
-/* 🔥 Ultra Compact Quantity Buttons */
-.btn-xs {
-    width: 28px !important;
-    height: 28px !important;
-    padding: 0 !important;
-    font-size: 0.75rem !important;
-    line-height: 1 !important;
-    border-radius: 6px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-width: auto !important;
-}
-
-.btn-xs:hover {
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(255,255,255,0.15) !important;
-}
-
-.qty-controls {
-    background: rgba(255, 255, 255, 0.34);
-    border-radius: 20px;
-    padding: 4px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.1);
-    gap: 4px;
-}
-
-.qty-display {
-    font-weight: 700 !important;
-    min-width: 32px !important;
-    font-size: 0.875rem !important;
-    padding: 4px 8px !important;
-}
-
-/* Mobile perfect */
-@media (max-width: 576px) {
-    .btn-xs { width: 24px !important; height: 24px !important; font-size: 0.7rem !important; }
-    .qty-display { min-width: 28px !important; font-size: 0.8rem !important; }
-}
-</style>
-

@@ -9,6 +9,7 @@ use App\Http\Controllers\Customer\DashboardController as CustomerDashboardContro
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Seller\DashboardController as SellerDashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Payments\CheckoutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -72,6 +73,10 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::get('/orders', [CustomerDashboardController::class, 'orders'])->name('orders');
         Route::get('/wishlist', [CustomerDashboardController::class, 'wishlist'])->name('wishlist');
         Route::get('/support', [CustomerDashboardController::class, 'support'])->name('support');
+    });
+
+    Route::prefix('checkout')->name('checkout.')->group(function(){
+        Route::get('/order-summary',[CheckoutController::class,'orderSummary'])->name('order-summary');
     });
 
     // 🔥 SELLER PRODUCTS - FULL CRUD
