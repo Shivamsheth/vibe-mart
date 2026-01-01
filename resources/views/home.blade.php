@@ -2,7 +2,10 @@
 @extends('layouts.public')
 
 @php
+
     use Illuminate\Support\Facades\Storage;
+
+    $sessionCart = session('cart', []); // id => item array
 @endphp
     
 @section('content')
@@ -130,25 +133,37 @@
                 </div>
 
                 {{-- Buttons - Fixed Bottom --}}
+                {{-- Buttons - Fixed Bottom --}}
                 <div class="mt-auto">
                     @auth
+                        @php
+                            $inCart = isset($sessionCart[$product->id]);
+                        @endphp
+
                         <div class="d-grid gap-1">
-                            <button class="btn btn-primary btn-sm fw-semibold py-2 px-3 add-to-cart shadow-sm" 
-        data-product-id="{{ $product->id }}">
-                                <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                            <button 
+                                class="btn btn-sm fw-semibold py-2 px-3 add-to-cart shadow-sm {{ $inCart ? 'btn-success' : 'btn-primary' }}" 
+                                data-product-id="{{ $product->id }}"
+                                data-in-cart="{{ $inCart ? '1' : '0' }}"
+                                @if($inCart) disabled @endif
+                            >
+                                <i class="fas fa-shopping-cart me-2"></i>
+                                {{ $inCart ? 'Added' : 'Add to Cart' }}
                             </button>
+
                             <a href="{{ route('product.show', $product->slug) }}" 
-                               class="btn btn-outline-light btn-sm fw-semibold py-2 px-3">
+                            class="btn btn-outline-light btn-sm fw-semibold py-2 px-3">
                                 <i class="fas fa-eye me-2"></i>Quick View
                             </a>
                         </div>
                     @else
                         <a href="{{ route('login.view') }}?redirect={{ urlencode(route('product.show', $product->slug)) }}" 
-                           class="btn btn-primary btn-sm fw-semibold py-2 px-3 w-100 shadow-sm">
+                        class="btn btn-primary btn-sm fw-semibold py-2 px-3 w-100 shadow-sm">
                             <i class="fas fa-shopping-cart me-2"></i>Login to Buy
                         </a>
                     @endauth
                 </div>
+
             </div>
         </div>
     </div>
@@ -216,63 +231,57 @@ document.addEventListener('DOMContentLoaded', function() {
         categoryFilter.addEventListener('change', filterProducts);
     }
 
-    // 🔥 3. REAL AJAX ADD TO CART (NEW - Replaces your mock)
-    document.querySelectorAll('.add-to-cart').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (!{{ auth()->check() ? 'true' : 'false' }}) {
-                window.location.href = `/login?redirect=${encodeURIComponent(window.location.href)}`;
-                return;
-            }
-            
-            const productId = this.dataset.productId;
-            const originalHTML = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
-            this.disabled = true;
-            this.classList.add('btn-outline-light');
-            
-            fetch('{{ route("cart.add") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({ 
-                    product_id: productId, 
-                    quantity: 1 
-                })
+   document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (!{{ auth()->check() ? 'true' : 'false' }}) {
+            window.location.href = `/login?redirect=${encodeURIComponent(window.location.href)}`;
+            return;
+        }
+        
+        const productId = this.dataset.productId;
+        const originalHTML = this.innerHTML;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+        this.disabled = true;
+        this.classList.add('btn-outline-light');
+        
+        fetch('{{ route("cart.add") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ 
+                product_id: productId, 
+                quantity: 1 
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Success feedback
-                    this.innerHTML = '<i class="fas fa-check-circle me-2 text-success"></i>Added!';
-                    this.classList.remove('btn-primary');
-                    this.classList.add('btn-success');
-                    
-                    // Update navbar cart count LIVE
-                    updateCartCount(data.cart_count);
-                    
-                    // setTimeout(() => {
-                    //     this.innerHTML = originalHTML;
-                    //     this.classList.remove('btn-success');
-                    //     this.classList.add('btn-primary');
-                    //     this.classList.remove('btn-outline-light');
-                    // }, 2500);
-                } else {
-                    alert(data.error || 'Failed to add to cart');
-                }
-            })
-            .catch(error => {
-                console.error('Add to cart error:', error);
-                alert('Network error. Please try again.');
-            })
-            .finally(() => {
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                this.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Added';
+                this.classList.remove('btn-primary');
+                this.classList.add('btn-success');
+                this.dataset.inCart = '1';
+                updateCartCount(data.cart_count);
+            } else {
+                alert(data.error || 'Failed to add to cart');
+                this.innerHTML = originalHTML;
                 this.disabled = false;
-                this.classList.remove('btn-outline-light');
-            });
+            }
+        })
+        .catch(error => {
+            console.error('Add to cart error:', error);
+            alert('Network error. Please try again.');
+            this.innerHTML = originalHTML;
+            this.disabled = false;
+        })
+        .finally(() => {
+            this.classList.remove('btn-outline-light');
         });
     });
+});
+
 
     // 🔥 4. GLOBAL CART COUNT UPDATER (NEW - For navbar)
     function updateCartCount(count) {
