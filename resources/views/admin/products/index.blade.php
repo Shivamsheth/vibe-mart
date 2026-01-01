@@ -5,6 +5,15 @@
 @section('breadcrumb', 'Admin / Products')
 
 @section('content')
+{{-- 🔥 SUCCESS ALERT --}}
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show border-0" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i>
+    {{ session('success') }}
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+</div>
+@endif
+
 {{-- 🔥 BEAUTIFUL STATS ROW --}}
 <div class="row g-3 mb-4">
     <div class="col-xl-2 col-md-3 col-sm-6">
@@ -65,15 +74,15 @@
 
 {{-- 🔥 PROFESSIONAL SELLERS TABLE --}}
 <div class="card-soft p-3">
-    <div class="card-header d-flex justify-content-between align-items-center py-3">
+    <div class="card-header d-flex justify-content-between align-items-center py-3 bg-transparent" style="border-color: var(--vm-border);">
         <h5 class="mb-0 fw-semibold">
             <i class="bi bi-person-lines-fill me-2"></i>
             Sellers ({{ $sellers->total() }})
         </h5>
         <div class="d-flex gap-2">
-            <input type="text" class="form-control form-control-sm" style="width: 250px;" 
+            <input type="text" class="form-control form-control-sm bg-transparent" style="width: 250px; border: 1px solid var(--vm-border) !important;" 
                    id="sellerSearch" placeholder="Search sellers...">
-            <select class="form-select form-select-sm" id="statusFilter" style="width: 140px;">
+            <select class="form-select form-select-sm bg-transparent" id="statusFilter" style="width: 140px; border: 1px solid var(--vm-border) !important;">
                 <option value="">All Status</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -81,14 +90,14 @@
         </div>
     </div>
     
-    <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0  ">
-            <thead class="table-light table-dark">
+    <div class="table-responsive"> 
+        <table class="table table-dark table-hover mb-0" >
+            <thead>
                 <tr>
                     <th style="width: 60px;"></th>
-                    <th style="width: 250px;">Seller</th>
+                    <th style="width: 280px;">Seller</th>
                     <th style="width: 100px;" class="text-center">Products</th>
-                    <th style="width: 120px;" class="text-center">Active</th>
+                    <th style="width: 100px;" class="text-center">Active</th>
                     <th style="width: 100px;" class="text-center">Status</th>
                     <th style="width: 120px;" class="text-center">Joined</th>
                     <th style="width: 160px;">Actions</th>
@@ -96,25 +105,21 @@
             </thead>
             <tbody>
                 @forelse($sellers as $seller)
-                <tr class="seller-row" data-name="{{ strtolower($seller->name) }}" data-status="{{ $seller->is_active ? 'active' : 'inactive' }}">
+                <tr class="seller-row p-3" data-name="{{ strtolower($seller->name) }}" data-status="{{ $seller->is_active ? 'active' : 'inactive' }}" >
                     <td>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="seller{{ $seller->id }}">
                             <label class="form-check-label" for="seller{{ $seller->id }}"></label>
                         </div>
                     </td>
-                    <td>
+                    <td> 
                         <div class="d-flex align-items-center gap-3">
                             <div class="vm-avatar" style="width: 42px; height: 42px; font-size: 1rem;">
                                 {{ strtoupper(substr($seller->name, 0, 1)) }}
                             </div>
-                            <div class="flex-grow-1 min-w-0">
-                                <div class="fw-semibold text-truncate" style="max-width: 200px;" title="{{ $seller->name }}">
-                                    {{ $seller->name }}
-                                </div>
-                                <small class="text-muted-soft text-truncate d-block" style="max-width: 200px;" title="{{ $seller->email }}">
-                                    {{ $seller->email }}
-                                </small>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold">{{ $seller->name }}</div>
+                                <small class="text-muted-soft">{{ $seller->email }}</small>
                             </div>
                         </div>
                     </td>
@@ -123,8 +128,8 @@
                             {{ $seller->products_count ?? 0 }}
                         </span>
                     </td>
-                    <td class="text-center">
-                        <span class="badge bg-success fs-6 px-3 py-2 fw-semibold">
+                    <td class="text-center ">
+                        <span class="badge bg-success fs-6  px-3 py-2 fw-semibold">
                             {{ $seller->products_count_active ?? 0 }}
                         </span>
                     </td>
@@ -134,26 +139,32 @@
                         </span>
                     </td>
                     <td class="text-center">
-                        <small class="text-muted-soft fw-semibold">{{ $seller->created_at }}</small>
-                        <div class="text-xs text-muted-soft">{{ $seller->created_at->diffForHumans() }}</div>
+                        <small class="text-muted-soft">{{ $seller->created_at->format('M d, Y') }}</small>
                     </td>
                     <td>
-                        <div class="btn-group btn-group-sm" role="group">
+                        <div class="btn-group btn-group-sm">
                             <a href="{{ route('admin.sellers.products', $seller->id) }}" 
                                class="btn btn-primary px-3" title="View Products">
-                                <i class="bi bi-box-seam"></i>
+                                <i class="bi bi-box-seam me-1"></i>View Products
                             </a>
-                            <button class="btn btn-outline-light px-2" title="Edit Profile">
-                                <i class="bi bi-pencil"></i>
-                            </button>
                             <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-outline-warning px-2 dropdown-toggle dropdown-toggle-split" 
-                                        data-bs-toggle="dropdown">
+                                <button class="btn btn-outline-light dropdown-toggle dropdown-toggle-split px-2" 
+                                        data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>View Profile</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-toggle-{{ $seller->is_active ? 'on' : 'off' }} me-2"></i>{{ $seller->is_active ? 'Deactivate' : 'Activate' }}</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i>Profile</a></li>
+                                    {{-- 🔥 WORKING TOGGLE BUTTON --}}
+                                    <li>
+                                        <form action="{{ route('admin.sellers.toggle', $seller->id) }}" method="POST" style="display: inline;">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item w-100 text-start p-2" 
+                                                    onclick="return confirm('{{ $seller->is_active ? 'Deactivate seller and hide all products?' : 'Activate seller and show all products?' }}')">
+                                                <i class="bi bi-toggle-{{ $seller->is_active ? 'off' : 'on' }} me-2"></i>
+                                                <strong>{{ $seller->is_active ? 'Deactivate & Hide Products' : 'Activate & Show Products' }}</strong>
+                                            </button>
+                                        </form>
+                                    </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i>Delete</a></li>
                                 </ul>
@@ -177,7 +188,7 @@
     </div>
     
     {{-- 🔥 PAGINATION --}}
-    <div class="card-footer bg-transparent border-0 pt-3 pb-3">
+    <div class="p-3 border-top" style="border-color: var(--vm-border) !important;">
         <div class="row align-items-center g-3">
             <div class="col-md-6">
                 <small class="text-muted-soft">
@@ -206,22 +217,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.seller-row').forEach(row => {
             const name = row.dataset.name;
             const rowStatus = row.dataset.status;
-            
             const matchesSearch = !searchTerm || name.includes(searchTerm);
             const matchesStatus = !status || rowStatus === status;
-            
             row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
         });
     }
     
-    sellerSearch.addEventListener('input', filterSellers);
-    statusFilter.addEventListener('change', filterSellers);
-    
-    // 🔥 SELECT ALL CHECKBOX
-    const checkboxes = document.querySelectorAll('.form-check-input');
-    const selectAll = document.querySelector('#selectAll');
-    
-    // Bulk actions...
+    if (sellerSearch) sellerSearch.addEventListener('input', filterSellers);
+    if (statusFilter) statusFilter.addEventListener('change', filterSellers);
 });
 </script>
 @endpush
@@ -236,13 +239,18 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: 0 8px 25px rgba(79, 70, 229, 0.15);
 }
 .table-hover tbody tr:hover {
-    background-color: rgba(79, 70, 229, 0.1) !important;
+    background-color: rgba(79, 70, 229, 0.08) !important;
 }
-.btn-group .dropdown-toggle-split::after {
-    margin-left: 0;
+.vm-avatar {
+    background: var(--vm-primary) !important;
 }
-.table{
-    border:none,groove;
+.table-dark thead th {
+    border-color: var(--vm-border) !important;
+    color: var(--vm-text) !important;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--vm-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25) !important;
 }
 </style>
 @endpush

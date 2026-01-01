@@ -10,6 +10,7 @@ class HomeController extends Controller
 {
     public function index(Request $request)
     {
+        
         $categories = ProductCategory::where('is_active', true)
             ->orderBy('name')
             ->limit(12)
