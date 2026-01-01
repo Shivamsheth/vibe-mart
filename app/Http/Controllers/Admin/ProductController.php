@@ -21,13 +21,20 @@ class ProductController extends Controller
         ];
 
         $sellers = User::where('type', 'seller')
-            ->where('is_active', true)
-            ->withCount(['products' => function($q) {
-                $q->where('status', 'active');
-            }])
-            ->select('id', 'name', 'email', 'created_at', 'is_active')
+            
+           
+
+            ->withCount([
+                'products as products_count',
+                'products as products_count_active' => function($q) {
+                    $q->where('status', 'active');
+                }
+            ])
             ->latest()
+            ->groupBy('id')
             ->paginate(10);
+
+   
 
         return view('admin.products.index', compact('stats', 'sellers'));
     }
@@ -38,7 +45,7 @@ class ProductController extends Controller
                      ->where('type', 'seller')
                      ->firstOrFail();
 
-        $products = Product::where('seller_id', $id)  // ✅ Uses your seller_id
+        $products = Product::where('seller_id', $id)
                           ->with(['category', 'images', 'primaryImage', 'seller'])
                           ->latest()
                           ->paginate(20);
@@ -50,4 +57,35 @@ class ProductController extends Controller
 
         return view('admin.sellers.products', compact('seller', 'products', 'stats'));
     }
+
+
+    // app/Http/Controllers/Admin/ProductController.php
+   public function toggleSeller(Request $request, $id)
+{
+    $seller = User::where('id', $id)->where('type', 'seller')->firstOrFail();
+    
+    // 🔥 TOGGLE SELLER STATUS FIRST (triggers Observer if exists)
+    $newSellerStatus = !$seller->is_active;
+    $seller->update(['is_active' => $newSellerStatus]);
+    
+    // 🔥 Force bulk update ALL products (PostgreSQL-safe)
+    $newVisibility = $newSellerStatus ? 'true' : 'false';  // String for varchar or casts to boolean
+    
+    $affected = Product::where('seller_id', $seller->id)
+                      ->update(['is_visible' => $newVisibility]);
+    
+    // 🔥 Debug: Log affected rows
+    \Log::info("Toggle seller {$id}: affected products = {$affected}, new status = " . ($newSellerStatus ? 'active' : 'inactive'));
+    
+    return back()->with('success', 
+        $newSellerStatus 
+            ? "Seller activated! {$affected} products visible." 
+            : "Seller deactivated! {$affected} products hidden."
+    );
+}
+
+
+
+
+    
 }

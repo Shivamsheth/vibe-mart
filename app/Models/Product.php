@@ -1,9 +1,13 @@
 <?php
+// app/Models/Product.php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\ProductCategory;
+use App\Models\ProductImage;
 
 class Product extends Model
 {
@@ -29,10 +33,10 @@ class Product extends Model
         'is_featured',
     ];
 
-    // relations
+    // ✅ CORRECT RELATIONSHIPS (Product → Others)
     public function seller()
     {
-            return $this->belongsTo(User::class, 'seller_id');
+        return $this->belongsTo(User::class, 'seller_id');
     }
 
     public function category()
@@ -49,5 +53,4 @@ class Product extends Model
     {
         return $this->hasOne(ProductImage::class, 'product_id')->where('is_primary', true);
     }
-
 }

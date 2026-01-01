@@ -74,5 +74,6 @@ Route::post('/products/{product}', [ProductController::class, 'update'])->name('
     Route::prefix('admin')->name('admin.')->group(function(){
         Route::get('/products',[AdminProductController::class,'index'])->name('products.index');
        Route::get('sellers/{id}/products', [AdminProductController::class,'sellerProducts'])->name('sellers.products');
+        Route::post('/sellers/{id}/toggle', [AdminProductController::class, 'toggleSeller'])->name('sellers.toggle'); 
     });
 });
