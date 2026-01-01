@@ -95,13 +95,22 @@
             transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.2);
         }
         
-        /* 🔥 CART BADGE - ANIMATED */
-        .cart-badge {
-            min-width: 20px; height: 20px; font-size: 0.7rem;
-            font-weight: 700; animation: pulse 2s infinite;
+        /* 🔥 LIVE CART BADGE - ANIMATED */
+        .live-cart-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: #1f2937;
+            min-width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 1.4;
+            animation: cartPulse 2s infinite;
         }
-        
-        @keyframes pulse {
+
+        @keyframes cartPulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
         }
@@ -245,7 +254,10 @@
                             
                             <!-- Menu Items -->
                             <li><a class="dropdown-item text-muted-soft px-3 py-2 rounded-2" href="{{ route('customer.profile') }}"><i class="fas fa-user me-3 text-primary"></i>Profile</a></li>
-                            <li><a class="dropdown-item text-muted-soft px-3 py-2 rounded-2" href="{{ route('customer.cart') }}"><i class="fas fa-shopping-cart me-3 text-warning"></i>Cart ({{ session('cart_count', 0) }})</a></li>
+                            <li><a class="dropdown-item text-muted-soft px-3 py-2 rounded-2" href="{{ route('customer.cart') }}">
+                                <i class="fas fa-shopping-cart me-3 text-warning"></i>
+                                Cart <span id="live-cart-count" class="live-cart-badge">{{ session('cart_count', 0) }}</span>
+                            </a></li>
                             <li><a class="dropdown-item px-3 py-2 text-muted-soft rounded-2" href="{{ route('customer.wishlist') }}"><i class="fas fa-heart me-3 text-danger"></i>Wishlist</a></li>
                             <li><a class="dropdown-item px-3 py-2 text-muted-soft rounded-2" href="{{ route('customer.orders') }}"><i class="fas fa-box me-3 text-success"></i>Orders</a></li>
                             
@@ -297,6 +309,55 @@
 
     <!-- 🔥 BOOTSTRAP JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 🔥 LIVE CART COUNTER -->
+    <script>
+    class LiveCartCounter {
+        constructor() {
+            this.cartCountElement = document.getElementById('live-cart-count');
+            if (!this.cartCountElement) return;
+            
+            this.init();
+        }
+
+        init() {
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'vibemart_cart') {
+                    this.syncCartCount();
+                }
+            });
+            
+            document.addEventListener('cartUpdated', () => this.syncCartCount());
+            document.addEventListener('cartCleared', () => this.syncCartCount());
+        }
+
+        syncCartCount() {
+            if (!this.cartCountElement) return;
+            
+            let cart = {};
+            try {
+                cart = JSON.parse(localStorage.getItem('vibemart_cart') || '{}');
+            } catch (e) {
+                // Fallback
+            }
+            
+            const totalItems = Object.values(cart).reduce((sum, item) => {
+                return sum + (parseInt(item.quantity) || 0);
+            }, 0);
+            
+            this.cartCountElement.textContent = totalItems || 0;
+        }
+    }
+
+    window.updateCartLocalStorage = function(cartData) {
+        localStorage.setItem('vibemart_cart', JSON.stringify(cartData || {}));
+        document.dispatchEvent(new CustomEvent('cartUpdated'));
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        new LiveCartCounter();
+    });
+    </script>
     
     <!-- 🔥 GLOBAL SCRIPTS -->
     <script>
