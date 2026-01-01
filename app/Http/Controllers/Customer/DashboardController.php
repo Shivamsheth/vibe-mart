@@ -17,8 +17,16 @@ class DashboardController extends Controller
         return view('customer.orders');
     }
     public function cart(){
+
+
         return view('customer.cart');
     }
+    public function clearCart()
+    {
+        session()->forget('cart');
+        return redirect()->route('customer.cart')->with('success', 'Cart cleared!');
+    }
+
     public function support(){
         return view('customer.support');
     }

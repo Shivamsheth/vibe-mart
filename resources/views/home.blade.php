@@ -125,7 +125,7 @@
                 <div class="mb-3">
                     <span class="badge {{ $product->stock_quantity <= 5 ? 'bg-warning text-dark' : 'bg-success' }} px-2 py-1 w-100 small">
                         <i class="fas {{ $product->stock_quantity <= 5 ? 'fa-exclamation-triangle me-1' : 'fa-check me-1' }}"></i>
-                        {{ $product->stock_quantity }} in stock
+                       Only {{ $product->stock_quantity }} available
                     </span>
                 </div>
 
@@ -134,7 +134,7 @@
                     @auth
                         <div class="d-grid gap-1">
                             <button class="btn btn-primary btn-sm fw-semibold py-2 px-3 add-to-cart shadow-sm" 
-                                    data-product-id="{{ $product->id }}">
+        data-product-id="{{ $product->id }}">
                                 <i class="fas fa-shopping-cart me-2"></i>Add to Cart
                             </button>
                             <a href="{{ route('product.show', $product->slug) }}" 
@@ -180,8 +180,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const categoryFilter = document.getElementById('categoryFilter');
     const sortSelect = document.getElementById('sortSelect');
+    const globalSearch = document.getElementById('globalSearch');
+    const searchBtn = document.getElementById('searchBtn');
 
-    // Server-side sorting
+    // 🔥 1. SERVER-SIDE SORTING (Your existing - unchanged)
     if (sortSelect) {
         const urlParams = new URLSearchParams(window.location.search);
         sortSelect.value = urlParams.get('sort') || 'latest';
@@ -192,9 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    
-
-    // Client-side filtering
+    // 🔥 2. CLIENT-SIDE FILTERING (Your existing - unchanged)
     if (searchInput && categoryFilter) {
         function filterProducts() {
             const term = searchInput.value.toLowerCase();
@@ -216,25 +216,80 @@ document.addEventListener('DOMContentLoaded', function() {
         categoryFilter.addEventListener('change', filterProducts);
     }
 
-    // Add to cart
+    // 🔥 3. REAL AJAX ADD TO CART (NEW - Replaces your mock)
     document.querySelectorAll('.add-to-cart').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
             if (!{{ auth()->check() ? 'true' : 'false' }}) {
                 window.location.href = `/login?redirect=${encodeURIComponent(window.location.href)}`;
                 return;
             }
-            const original = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-check-circle me-2"></i>Added!';
-            this.classList.add('btn-success');
-            setTimeout(() => {
-                this.innerHTML = original;
-                this.classList.remove('btn-success');
-            }, 2000);
+            
+            const productId = this.dataset.productId;
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+            this.disabled = true;
+            this.classList.add('btn-outline-light');
+            
+            fetch('{{ route("cart.add") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ 
+                    product_id: productId, 
+                    quantity: 1 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Success feedback
+                    this.innerHTML = '<i class="fas fa-check-circle me-2 text-success"></i>Added!';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-success');
+                    
+                    // Update navbar cart count LIVE
+                    updateCartCount(data.cart_count);
+                    
+                    // setTimeout(() => {
+                    //     this.innerHTML = originalHTML;
+                    //     this.classList.remove('btn-success');
+                    //     this.classList.add('btn-primary');
+                    //     this.classList.remove('btn-outline-light');
+                    // }, 2500);
+                } else {
+                    alert(data.error || 'Failed to add to cart');
+                }
+            })
+            .catch(error => {
+                console.error('Add to cart error:', error);
+                alert('Network error. Please try again.');
+            })
+            .finally(() => {
+                this.disabled = false;
+                this.classList.remove('btn-outline-light');
+            });
         });
     });
 
-    // PERFECT HOVER - No overlap
-    document.querySelectorAll('.product-card').forEach((card, index) => {
+    // 🔥 4. GLOBAL CART COUNT UPDATER (NEW - For navbar)
+    function updateCartCount(count) {
+        document.querySelectorAll('.cart-count').forEach(el => {
+            el.textContent = count;
+            el.style.display = count > 0 ? 'block' : 'none';
+        });
+    }
+
+    // 🔥 5. LOAD INITIAL CART COUNT (NEW)
+    fetch('{{ route("cart.count") }}')
+        .then(response => response.json())
+        .then(data => updateCartCount(data.count))
+        .catch(() => {}); // Silent fail
+
+    // 🔥 6. PERFECT HOVER (Your existing - unchanged)
+    document.querySelectorAll('.product-card').forEach(card => {
         const wrapper = card.closest('.col-xl-2, .col-lg-3, .col-md-4');
         const img = card.querySelector('.product-image');
         
@@ -248,30 +303,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ADDED: Global navbar search handler
-        const globalSearch = document.getElementById('globalSearch');
-        const searchBtn = document.getElementById('searchBtn');
-
-        // Already handles case-insensitive + spaces
-function performGlobalSearch() {
-    const term = globalSearch.value.trim();  // "iPhone 14" → "iphone 14"
-    const params = new URLSearchParams(window.location.search);
-    if (term) {
-        params.set('search', term);  // ?search=iPhone 14
-    } else {
-        params.delete('search');
-    }
-    window.location.search = params.toString();
-}
-
+    // 🔥 7. GLOBAL NAVBAR SEARCH (Your existing - fixed)
+    if (globalSearch && searchBtn) {
+        function performGlobalSearch() {
+            const term = globalSearch.value.trim();
+            const params = new URLSearchParams(window.location.search);
+            if (term) {
+                params.set('search', term);
+            } else {
+                params.delete('search');
+            }
+            window.location.search = params.toString();
+        }
 
         globalSearch.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') performGlobalSearch();
         });
         searchBtn.addEventListener('click', performGlobalSearch);
+    }
 
-
-    // Wishlist toggle
+    // 🔥 8. WISHLIST TOGGLE (Your existing - unchanged)
     document.querySelectorAll('.wishlist-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -284,6 +335,7 @@ function performGlobalSearch() {
     });
 });
 </script>
+
 
 <style>
 /* 🔥 PERFECT ALIGNMENT - NO OVERLAP */
