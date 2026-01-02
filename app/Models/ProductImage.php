@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class ProductImage extends Model
 {
     use HasFactory;
+
+    protected $table = 'product_images';
 
     protected $fillable = [
         'product_id',
@@ -15,8 +18,34 @@ class ProductImage extends Model
         'is_primary',
     ];
 
+    protected $casts = [
+        'is_primary' => 'boolean',
+    ];
+
+    /* ======================
+       RELATIONSHIPS
+    ====================== */
+
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /* ======================
+       ACCESSORS
+    ====================== */
+
+    public function getUrlAttribute(): string
+    {
+        return Storage::url($this->path);
+    }
+
+    /* ======================
+       SCOPES
+    ====================== */
+
+    public function scopePrimary($query)
+    {
+        return $query->where('is_primary', true);
     }
 }
