@@ -1,4 +1,4 @@
-@extends('layouts.public')
+<!-- @extends('layouts.public')
 
 @section('title', 'Secure Checkout - VibeMart')
 
@@ -246,4 +246,4 @@ form.addEventListener('submit', e => {
     }, 2500);
 });
 </script>
-@endpush
+@endpush -->
