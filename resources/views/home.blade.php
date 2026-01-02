@@ -190,100 +190,114 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const products = document.querySelectorAll('.col-xl-2, .col-lg-3, .col-md-4');
+document.addEventListener('DOMContentLoaded', () => {
+
+    const products = document.querySelectorAll('[data-name]');
     const searchInput = document.getElementById('searchInput');
     const categoryFilter = document.getElementById('categoryFilter');
     const sortSelect = document.getElementById('sortSelect');
     const globalSearch = document.getElementById('globalSearch');
     const searchBtn = document.getElementById('searchBtn');
 
-    // 🔥 1. SERVER-SIDE SORTING (Your existing - unchanged)
+    /* ---------------- SORT ---------------- */
     if (sortSelect) {
-        const urlParams = new URLSearchParams(window.location.search);
-        sortSelect.value = urlParams.get('sort') || 'latest';
-        sortSelect.addEventListener('change', function() {
-            const params = new URLSearchParams(window.location.search);
-            params.set('sort', this.value);
+        const params = new URLSearchParams(window.location.search);
+        sortSelect.value = params.get('sort') || 'latest';
+
+        sortSelect.addEventListener('change', () => {
+            params.set('sort', sortSelect.value);
             window.location.search = params.toString();
         });
     }
 
-    // 🔥 2. CLIENT-SIDE FILTERING (Your existing - unchanged)
-    if (searchInput && categoryFilter) {
-        function filterProducts() {
-            const term = searchInput.value.toLowerCase();
-            const category = categoryFilter.value;
-            
-            products.forEach(product => {
-                const name = product.dataset.name || '';
-                const cat = product.dataset.category;
-                const matches = (!term || name.includes(term)) && (!category || cat == category);
-                product.style.display = matches ? '' : 'none';
-            });
-        }
+    /* ---------------- FILTER ---------------- */
+    function filterProducts() {
+        const term = searchInput?.value.toLowerCase() || '';
+        const category = categoryFilter?.value || '';
 
-        let filterTimeout;
-        searchInput.addEventListener('input', () => {
-            clearTimeout(filterTimeout);
-            filterTimeout = setTimeout(filterProducts, 250);
+        products.forEach(p => {
+            const match =
+                (!term || p.dataset.name.includes(term)) &&
+                (!category || p.dataset.category === category);
+
+            p.style.display = match ? '' : 'none';
         });
-        categoryFilter.addEventListener('change', filterProducts);
     }
 
-   document.querySelectorAll('.add-to-cart').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (!{{ auth()->check() ? 'true' : 'false' }}) {
-            window.location.href = `/login?redirect=${encodeURIComponent(window.location.href)}`;
-            return;
-        }
-        
-        const productId = this.dataset.productId;
-        const originalHTML = this.innerHTML;
-        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
-        this.disabled = true;
-        this.classList.add('btn-outline-light');
-        
-        fetch('{{ route("cart.add") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ 
-                product_id: productId, 
-                quantity: 1 
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                this.innerHTML = '<i class="fas fa-shopping-cart me-2"></i>Added';
-                this.classList.remove('btn-primary');
-                this.classList.add('btn-success');
-                this.dataset.inCart = '1';
-                updateCartCount(data.cart_count);
-            } else {
-                alert(data.error || 'Failed to add to cart');
-                this.innerHTML = originalHTML;
-                this.disabled = false;
+    searchInput?.addEventListener('input', filterProducts);
+    categoryFilter?.addEventListener('change', filterProducts);
+
+    /* ---------------- ADD TO CART ---------------- */
+    document.querySelectorAll('.add-to-cart').forEach(btn => {
+        btn.addEventListener('click', async e => {
+            e.preventDefault();
+
+            if (!{{ auth()->check() ? 'true' : 'false' }}) {
+                window.location.href = `/login?redirect=${encodeURIComponent(location.href)}`;
+                return;
             }
-        })
-        .catch(error => {
-            console.error('Add to cart error:', error);
-            alert('Network error. Please try again.');
-            this.innerHTML = originalHTML;
-            this.disabled = false;
-        })
-        .finally(() => {
-            this.classList.remove('btn-outline-light');
+
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('{{ route("cart.add") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ product_id: btn.dataset.productId, quantity: 1 })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    btn.innerHTML = '<i class="fas fa-check me-2"></i>Added';
+                    btn.classList.replace('btn-primary', 'btn-success');
+                    updateCartCount(data.cart_count);
+                } else throw new Error();
+            } catch {
+                alert('Failed to add to cart');
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
         });
     });
-});
 
+    /* ---------------- WISHLIST ---------------- */
+    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+        btn.addEventListener('click', async e => {
+            e.preventDefault();
+            e.stopPropagation();
 
-    // 🔥 4. GLOBAL CART COUNT UPDATER (NEW - For navbar)
+            const icon = btn.querySelector('i');
+
+            try {
+                const res = await fetch('{{ route("wishlist.add") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ product_id: btn.dataset.productId })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    icon.classList.toggle('far');
+                    icon.classList.toggle('fas');
+                    icon.classList.toggle('text-danger');
+                }
+            } catch {
+                alert('Wishlist failed');
+            }
+        });
+    });
+
+    /* ---------------- CART COUNT ---------------- */
     function updateCartCount(count) {
         document.querySelectorAll('.cart-count').forEach(el => {
             el.textContent = count;
@@ -291,57 +305,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 🔥 5. LOAD INITIAL CART COUNT (NEW)
     fetch('{{ route("cart.count") }}')
-        .then(response => response.json())
-        .then(data => updateCartCount(data.count))
-        .catch(() => {}); // Silent fail
+        .then(r => r.json())
+        .then(d => updateCartCount(d.count))
+        .catch(() => {});
 
-    // 🔥 6. PERFECT HOVER (Your existing - unchanged)
-    document.querySelectorAll('.product-card').forEach(card => {
-        const wrapper = card.closest('.col-xl-2, .col-lg-3, .col-md-4');
-        const img = card.querySelector('.product-image');
-        
-        wrapper.addEventListener('mouseenter', () => {
-            card.style.transform = 'translateY(-6px)';
-            if (img) img.style.transform = 'scale(1.05)';
-        });
-        wrapper.addEventListener('mouseleave', () => {
-            card.style.transform = 'translateY(0)';
-            if (img) img.style.transform = 'scale(1)';
-        });
-    });
-
-    // 🔥 7. GLOBAL NAVBAR SEARCH (Your existing - fixed)
+    /* ---------------- GLOBAL SEARCH ---------------- */
     if (globalSearch && searchBtn) {
-        function performGlobalSearch() {
-            const term = globalSearch.value.trim();
+        const go = () => {
             const params = new URLSearchParams(window.location.search);
-            if (term) {
-                params.set('search', term);
-            } else {
-                params.delete('search');
-            }
-            window.location.search = params.toString();
-        }
+            globalSearch.value
+                ? params.set('search', globalSearch.value.trim())
+                : params.delete('search');
 
-        globalSearch.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') performGlobalSearch();
-        });
-        searchBtn.addEventListener('click', performGlobalSearch);
+            window.location.search = params.toString();
+        };
+
+        searchBtn.addEventListener('click', go);
+        globalSearch.addEventListener('keypress', e => e.key === 'Enter' && go());
     }
 
-    // 🔥 8. WISHLIST TOGGLE (Your existing - unchanged)
-    document.querySelectorAll('.wishlist-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const icon = this.querySelector('i');
-            icon.classList.toggle('far');
-            icon.classList.toggle('fas');
-            icon.classList.toggle('text-danger');
-            this.style.color = icon.classList.contains('text-danger') ? '#ef4444' : 'rgba(255,255,255,0.5)';
-        });
-    });
 });
 </script>
 
