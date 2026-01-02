@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
@@ -17,9 +18,12 @@ class CartController extends Controller
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'sometimes|integer|min:1|max:99'
+            'quantity' => 'sometimes|integer|min:1|max:99',
+            
         ]);
 
+
+        $customerId = Auth::id();
         $productId = $request->input('product_id');
         $quantity = $request->integer('quantity', 1);
 
@@ -48,10 +52,11 @@ class CartController extends Controller
 
             $cart[$productId] = [
                 'id' => (int) $product->id,
+                'customer_id'=>$customerId,
                 'name' => $product->name,
                 'price' => (float) $price,
                 'image' => $image,
-                'quantity' => $quantity
+                'quantity' => $quantity,
             ];
         }
 
@@ -65,7 +70,7 @@ class CartController extends Controller
             'success' => true,
             'message' => 'Added to cart successfully!',
             'cart_count' => $cartCount,
-            'cart' => $cart  // 👈 Full cart for live sync
+            'cart' => $cart,
         ]);
     }
 
@@ -202,9 +207,12 @@ class CartController extends Controller
      */
     public function summary()
     {
+        
         $cart = session('cart', []);
         $totalItems = array_sum(array_column($cart, 'quantity'));
         $subtotal = 0;
+       
+        
 
         foreach ($cart as $item) {
             $subtotal += ($item['price'] ?? 0) * ($item['quantity'] ?? 0);
@@ -213,7 +221,9 @@ class CartController extends Controller
         return response()->json([
             'count' => $totalItems,
             'subtotal' => number_format($subtotal, 0),
-            'cart' => $cart  // 👈 Full cart
+            'cart' => $cart,  // 👈 Full cart
+            'product_id' => $productId,
+            'customer_id' => $customerId
         ]);
     }
 
@@ -229,4 +239,6 @@ class CartController extends Controller
             'count' => $count
         ]);
     }
+
+    
 }
