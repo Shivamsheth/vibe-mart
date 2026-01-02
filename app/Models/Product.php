@@ -1,13 +1,9 @@
 <?php
-// app/Models/Product.php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
-use App\Models\ProductCategory;
-use App\Models\ProductImage;
 
 class Product extends Model
 {
@@ -33,7 +29,30 @@ class Product extends Model
         'is_featured',
     ];
 
-    // ✅ CORRECT RELATIONSHIPS (Product → Others)
+    protected $casts = [
+        'price'          => 'float',
+        'sale_price'     => 'float',
+        'cost_price'     => 'float',
+        'stock_quantity' => 'integer',
+        'stock_alert'    => 'integer',
+        'manage_stock'   => 'boolean',
+        'is_visible'     => 'boolean',
+        'is_featured'    => 'boolean',
+    ];
+
+    /* ======================
+       ROUTE BINDING
+    ====================== */
+
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+    /* ======================
+       RELATIONSHIPS
+    ====================== */
+
     public function seller()
     {
         return $this->belongsTo(User::class, 'seller_id');
@@ -51,6 +70,57 @@ class Product extends Model
 
     public function primaryImage()
     {
-        return $this->hasOne(ProductImage::class, 'product_id')->where('is_primary', true);
+        return $this->hasOne(ProductImage::class, 'product_id')
+                    ->where('is_primary', true);
+    }
+
+    /* ======================
+       ACCESSORS
+    ====================== */
+
+    public function getFinalPriceAttribute(): float
+    {
+        return $this->sale_price && $this->sale_price < $this->price
+            ? $this->sale_price
+            : $this->price;
+    }
+
+    public function getMainImageAttribute()
+    {
+        return $this->primaryImage()->first()
+            ?? $this->images()->first();
+    }
+
+    /* ======================
+       STOCK HELPERS
+    ====================== */
+
+    public function inStock(): bool
+    {
+        return !$this->manage_stock || $this->stock_quantity > 0;
+    }
+
+    public function lowStock(): bool
+    {
+        return $this->manage_stock && $this->stock_quantity <= $this->stock_alert;
+    }
+
+    /* ======================
+       SCOPES
+    ====================== */
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeVisible($query)
+    {
+        return $query->where('is_visible', true);
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
     }
 }
