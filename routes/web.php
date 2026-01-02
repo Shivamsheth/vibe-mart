@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Seller\DashboardController as SellerDashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Payments\CheckoutController;
+use App\Http\Controllers\Customer\WishlistController;
 
 /*
 |--------------------------------------------------------------------------
@@ -88,6 +89,11 @@ Route::middleware(['web', 'auth'])->group(function () {
             // AJAX: create order
             Route::post('/place-order', [CheckoutController::class, 'orderCreation'])
                 ->name('place-order');
+        });
+
+        Route::prefix('wishlist')->name('wishlist.')->group(function (){
+            Route::post('/add',[WishlistController::class,'add'])->name('add');
+            //Route::get('/list',[WishlistController::class,'index'])->name('index');
         });
 
     // 🔥 SELLER PRODUCTS - FULL CRUD

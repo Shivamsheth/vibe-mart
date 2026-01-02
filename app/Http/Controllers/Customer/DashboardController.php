@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Models\wishlist;
+use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -30,7 +33,11 @@ class DashboardController extends Controller
     public function support(){
         return view('customer.support');
     }
+
     public function wishlist(){
-        return view('customer.wishlist');
+        $wishlist = Wishlist::with('product.images')
+        ->where('user_id', Auth::id())
+        ->get();
+        return view('customer.wishlist', compact('wishlist'));
     }
 }
