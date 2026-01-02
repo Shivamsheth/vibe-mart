@@ -256,7 +256,7 @@
                             <li><a class="dropdown-item text-muted-soft px-3 py-2 rounded-2" href="{{ route('customer.profile') }}"><i class="fas fa-user me-3 text-primary"></i>Profile</a></li>
                             <li><a class="dropdown-item text-muted-soft px-3 py-2 rounded-2" href="{{ route('customer.cart') }}">
                                 <i class="fas fa-shopping-cart me-3 text-warning"></i>
-                                Cart <span id="live-cart-count" class="live-cart-badge">{{ session('cart_count', 0) }}</span>
+                                Cart <span id="live-cart-count" class="live-cart-badge">                {{ session('cart_count', 0) }}</span>
                             </a></li>
                             <li><a class="dropdown-item px-3 py-2 text-muted-soft rounded-2" href="{{ route('customer.wishlist') }}"><i class="fas fa-heart me-3 text-danger"></i>Wishlist</a></li>
                             <li><a class="dropdown-item px-3 py-2 text-muted-soft rounded-2" href="{{ route('customer.orders') }}"><i class="fas fa-box me-3 text-success"></i>Orders</a></li>

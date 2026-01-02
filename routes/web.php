@@ -75,9 +75,20 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::get('/support', [CustomerDashboardController::class, 'support'])->name('support');
     });
 
-    Route::prefix('checkout')->name('checkout.')->group(function(){
-        Route::get('/order-summary',[CheckoutController::class,'orderSummary'])->name('order-summary');
-    });
+    Route::prefix('checkout')->name('checkout.')->group(function () {
+
+            // AJAX: lock checkout
+            Route::post('/order-summary', [CheckoutController::class, 'orderSummary'])
+                ->name('order-summary');
+
+            // PAGE: payment UI
+            Route::get('/payment', [CheckoutController::class, 'paymentPage'])
+                ->name('payment');
+
+            // AJAX: create order
+            Route::post('/place-order', [CheckoutController::class, 'orderCreation'])
+                ->name('place-order');
+        });
 
     // 🔥 SELLER PRODUCTS - FULL CRUD
     Route::prefix('seller')->name('seller.')->group(function () {
