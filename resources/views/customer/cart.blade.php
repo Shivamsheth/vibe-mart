@@ -1,181 +1,225 @@
-@extends('layouts.public')
+    {{-- resources/views/customer/cart.blade.php --}}
+    @extends('layouts.public')
 
-@section('title', 'Secure Checkout - VibeMart')
+    @section('title', 'Shopping Cart - VibeMart')
 
-@section('content')
-<div class="row g-4 g-lg-5">
+    @section('content')
+    <div class="row g-4 g-lg-5">
 
-    {{-- 🔥 LEFT: Checkout Form --}}
-    <div class="col-lg-7">
-        <div class="card-soft p-lg-5 p-4 shadow-xl rounded-3">
+        {{-- 🔥 LEFT: Cart Items --}}
+        <div class="col-lg-8">
+            <div class="card-soft p-lg-5 p-4 shadow-xl rounded-3">
 
-            <h3 class="fw-bold mb-4">
-                <i class="fas fa-lock text-success me-2"></i>
-                Secure Checkout
-            </h3>
+                @if(empty($cart))
+                    <div class="text-center py-10">
+                        <i class="fas fa-shopping-cart fa-5x text-muted-soft opacity-25 mb-4"></i>
+                        <h4 class="mb-3 text-muted-soft fw-semibold">Your cart is empty</h4>
+                        <p class="text-muted-soft mb-5">Looks like you haven't added anything yet.</p>
+                        <a href="{{ route('home') }}" class="btn btn-primary btn-lg px-5 py-3 fw-semibold shadow-lg">
+                            <i class="fas fa-store me-2"></i>Start Shopping
+                        </a>
+                    </div>
+                @else
+                    <div class="table-responsive table-responsive-custom">
+                        <table class="table table-dark table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($cart as $id => $item)
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <img src="{{ $item['image'] }}"
+                                                style="width:64px;height:64px;object-fit:cover"
+                                                class="rounded shadow-sm"
+                                                onerror="this.src='{{ asset('images/no-image.jpg') }}'">
+                                            <div>
+                                                <div class="fw-semibold product-name">
+                                                    {{ Str::limit($item['name'], 45) }}
+                                                </div>
+                                                <small class="text-muted-soft">
+                                                    ₹{{ number_format($item['price'], 0) }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </td>
 
-            <form id="checkoutForm">
+                                    {{-- Quantity --}}
+                                    <td class="text-center">
+                                        <button class="btn btn-sm qty-minus" data-id="{{ $id }}">−</button>
+                                        <span class="mx-2 fw-bold qty-display" data-id="{{ $id }}">
+                                            {{ $item['quantity'] }}
+                                        </span>
+                                        <button class="btn btn-sm qty-plus" data-id="{{ $id }}">+</button>
+                                    </td>
 
-                {{-- ================= Customer Info ================= --}}
-                <h6 class="fw-semibold mb-3 text-primary">
-                    <i class="fas fa-user me-2"></i>Customer Information
-                </h6>
+                                    {{-- Unit Price --}}
+                                    <td class="text-end">
+                                        ₹{{ number_format($item['price'], 0) }}
+                                    </td>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Full Name</label>
-                        <input type="text" name="name" class="form-control form-control-lg" required>
+                                    {{-- Total --}}
+                                    <td class="text-end">
+                                        ₹{{ number_format($item['price'] * $item['quantity'], 0) }}
+                                    </td>
+
+                                    {{-- Remove --}}
+                                    <td class="text-center">
+                                        <form method="POST"
+                                            action="{{ route('cart.remove', $id) }}"
+                                            class="delete-form">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
                     </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Phone</label>
-                        <input type="text" name="phone" class="form-control form-control-lg" required>
+                    {{-- Actions --}}
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ route('home') }}" class="btn btn-outline-light">
+                            ← Continue Shopping
+                        </a>
+
+                        <form method="POST" action="{{ route('cart.clear') }}" class="clear-cart-form">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-danger">
+                                Clear Cart
+                            </button>
+                        </form>
                     </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- 🔥 RIGHT: Order Summary --}}
+        <div class="col-lg-4">
+            <div class="card-soft-summary p-4 shadow-xl rounded-3 sticky-top">
+
+                <h4 class="fw-bold mb-3">
+                    <i class="fas fa-receipt text-primary me-2"></i>Order Summary
+                </h4>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>{{ $totalItems }} Items</span>
+                    <span>₹{{ number_format($subtotal, 0) }}</span>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" name="email" class="form-control form-control-lg" required>
+                <div class="d-flex justify-content-between text-success mb-3">
+                    <span>Shipping</span>
+                    <span>FREE</span>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Delivery Address</label>
-                    <textarea name="address" rows="2" class="form-control form-control-lg" required></textarea>
+                <hr>
+
+                <div class="d-flex justify-content-between fw-bold fs-4 mb-4">
+                    <span>Total</span>
+                    <span class="text-primary">
+                        ₹{{ number_format($subtotal, 0) }}
+                    </span>
                 </div>
 
-                {{-- ================= Payment Method ================= --}}
-                <h6 class="fw-semibold mb-3 text-primary">
-                    <i class="fas fa-credit-card me-2"></i>Payment Method
-                </h6>
-
-                <div class="mb-3">
-                    <select name="payment_method" id="payment_method" class="form-select form-select-lg" required>
-                        <option value="">Select Payment Method</option>
-                        <option value="card">💳 Credit / Debit Card</option>
-                        <option value="upi">📱 UPI</option>
-                        <option value="cash">💵 Cash (Not Allowed)</option>
-                    </select>
-                </div>
-
-                {{-- ================= Card Details ================= --}}
-                <div id="cardSection" class="d-none mt-3">
-
-                    <div class="alert alert-info small mb-3">
-                        <i class="fas fa-shield-alt me-1"></i>
-                        Your card details are securely encrypted.
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Card Number</label>
-                        <input type="text" name="card_number" class="form-control form-control-lg" placeholder="1234 5678 9012 3456">
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Expiry</label>
-                            <input type="text" name="expiry" class="form-control form-control-lg" placeholder="MM/YY">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">CVV</label>
-                            <input type="password" name="cvv" class="form-control form-control-lg">
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ================= Submit ================= --}}
-                <button class="btn btn-success btn-lg w-100 py-3 fw-bold mt-4 shadow-lg">
-                    <i class="fas fa-lock me-2"></i>Place Secure Order
+                {{-- 🔥 Checkout Button --}}
+                <button type="button"
+                        id="checkoutBtn"
+                        class="btn btn-success btn-lg w-100 fw-bold"
+                        {{ empty($cart) ? 'disabled' : '' }}>
+                    <i class="fas fa-credit-card me-2"></i>
+                    Proceed to Checkout
                 </button>
-            </form>
 
-            <div id="checkoutResponse" class="mt-4"></div>
-        </div>
-    </div>
-
-    {{-- 🔥 RIGHT: Order Summary --}}
-    <div class="col-lg-5">
-        <div class="card-soft-summary p-lg-5 p-4 shadow-xl rounded-3 sticky-top">
-
-            <h4 class="fw-bold mb-4">
-                <i class="fas fa-receipt text-primary me-2"></i>
-                Order Summary
-            </h4>
-
-            {{-- Products --}}
-            @foreach(session('cart', []) as $item)
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="me-2">
-                        <div class="fw-semibold">{{ Str::limit($item['name'], 40) }}</div>
-                        <small class="text-muted-soft">Qty: {{ $item['quantity'] }}</small>
-                    </div>
-                    <div class="fw-semibold">
-                        ₹{{ number_format($item['price'] * $item['quantity'], 0) }}
-                    </div>
+                <div class="text-center mt-3">
+                    <small class="text-muted-soft">
+                        🔒 Secure checkout • Free shipping over ₹999
+                    </small>
                 </div>
-            @endforeach
-
-            <hr class="border-custom">
-
-            {{-- Totals --}}
-            <div class="d-flex justify-content-between mb-2">
-                <span class="text-muted-soft">Subtotal</span>
-                <span class="fw-semibold">₹{{ number_format($subtotal ?? 0, 0) }}</span>
-            </div>
-
-            <div class="d-flex justify-content-between mb-2 text-success">
-                <span class="text-muted-soft">Shipping</span>
-                <span class="fw-semibold">FREE</span>
-            </div>
-
-            <hr class="border-custom">
-
-            <div class="d-flex justify-content-between fs-4 fw-bold">
-                <span>Total</span>
-                <span class="text-primary">₹{{ number_format($subtotal ?? 0, 0) }}</span>
-            </div>
-
-            {{-- Trust Badges --}}
-            <div class="text-center mt-4 pt-3 border-top-custom">
-                <i class="fas fa-lock text-success fs-4 me-2"></i>
-                <i class="fas fa-shield-alt text-info fs-4 me-2"></i>
-                <small class="d-block mt-2 text-muted-soft">
-                    100% Secure • Encrypted Payments
-                </small>
             </div>
         </div>
     </div>
-</div>
-@endsection
 
-@push('scripts')
+    {{-- 🔐 Server-trusted data --}}
+    <script>
+        window.checkoutCart   = @json($cart);
+        window.checkoutTotal  = {{ $subtotal }};
+    </script>
+    @endsection
+
+    @push('scripts')
+    @push('scripts')
 <script>
-const paymentMethod = document.getElementById('payment_method');
-const cardSection = document.getElementById('cardSection');
-const form = document.getElementById('checkoutForm');
-const responseBox = document.getElementById('checkoutResponse');
+document.addEventListener('DOMContentLoaded', function () {
 
-paymentMethod.addEventListener('change', () => {
-    cardSection.classList.toggle('d-none', paymentMethod.value !== 'card');
-});
+    /* ===============================
+       CHECKOUT BUTTON HANDLER
+    =============================== */
 
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+    const checkoutBtn = document.getElementById('checkoutBtn');
 
-    responseBox.innerHTML = '';
+    if (!checkoutBtn) return;
 
-    const res = await fetch("{{ url('/api/checkout/order') }}", {
-        method: 'POST',
-        headers: { 'Accept': 'application/json' },
-        body: new FormData(form)
+    checkoutBtn.addEventListener('click', function () {
+
+        // Prevent double click
+        if (checkoutBtn.disabled) return;
+
+        checkoutBtn.disabled = true;
+        const originalHTML = checkoutBtn.innerHTML;
+
+        checkoutBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+
+        fetch('{{ route("checkout.order-summary") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document
+                    .querySelector('meta[name="csrf-token"]')
+                    .getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw response;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.redirect) {
+                // ✅ Redirect ONLY to GET route
+                window.location.href = data.redirect;
+            } else {
+                throw new Error(data.message || 'Checkout failed'); 
+            }
+        })
+        .catch(async (error) => {
+            let message = 'Something went wrong. Please try again.';
+
+            if (error.json) {
+                const err = await error.json();
+                message = err.message || message;
+            }
+
+            alert(message);
+
+            checkoutBtn.disabled = false;
+            checkoutBtn.innerHTML = originalHTML;
+        });
     });
 
-    const data = await res.json();
-
-    responseBox.innerHTML = `
-        <div class="alert ${res.ok ? 'alert-success' : 'alert-danger'} shadow-sm">
-            <pre class="mb-0">${JSON.stringify(data, null, 2)}</pre>
-        </div>
-    `;
 });
 </script>
 @endpush
+

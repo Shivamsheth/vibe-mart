@@ -1,5 +1,4 @@
 <?php
-// app/Models/User.php
 
 namespace App\Models;
 
@@ -37,25 +36,44 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
-        'email_verified_at' => 'boolean',
-        'otp_expires_at' => 'datetime',
-        'is_active' => 'boolean',
-        'otp_attempts' => 'integer',
-        'last_login_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'email_verified_at' => 'datetime', // ✅ FIXED
+        'otp_expires_at'    => 'datetime',
+        'is_active'         => 'boolean',
+        'otp_attempts'      => 'integer',
+        'last_login_at'     => 'datetime',
+        'created_at'        => 'datetime',
+        'updated_at'        => 'datetime',
     ];
 
-    // ✅ CORRECT RELATIONSHIPS (User → Others)
+    /* ======================
+       RELATIONSHIPS
+    ====================== */
+
+    // Seller → Products
     public function products()
     {
         return $this->hasMany(Product::class, 'seller_id');
     }
 
-    // ✅ Helper methods (KEEP THESE)
+    public function activeProducts()
+    {
+        return $this->hasMany(Product::class, 'seller_id')
+                    ->where('status', 'active');
+    }
+
+    // Customer → Orders
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'customer_id');
+    }
+
+    /* ======================
+       HELPERS
+    ====================== */
+
     public function isEmailVerified(): bool
     {
-        return $this->email_verified_at;
+        return !is_null($this->email_verified_at);
     }
 
     public function isOtpExpired(): bool
@@ -63,8 +81,23 @@ class User extends Authenticatable
         return $this->otp_expires_at && $this->otp_expires_at->isPast();
     }
 
-    public function activeProducts()
+    public function isActive(): bool
     {
-        return $this->hasMany(Product::class, 'seller_id')->where('status', 'active');
+        return $this->is_active === true;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->type === 'admin';
+    }
+
+    public function isSeller(): bool
+    {
+        return $this->type === 'seller';
+    }
+
+    public function isCustomer(): bool
+    {
+        return $this->type === 'customer';
     }
 }
